@@ -1,40 +1,98 @@
 /** Namespace class */
 var Namespace = /** @class */ (function () {
-    function Namespace(name) {
-        this.validate(name);
-        var p = this.parseName(name);
-        var n = p.shift();
-        if (this.init(n)) {
-            var ns = new Namespace.Default(p);
-            ns.applyTo(this, n);
-        }
+    function Namespace(path) {
+        if (!(this instanceof Namespace))
+            return new Namespace(path);
+        this.init(path);
     }
-    Namespace.prototype.parseName = function (name) {
-        return Array.isArray(name) ? name : name.split(/[\[\]."']/gi).filter(function (x) { return !!x && !!x.trim(); });
-    };
-    Namespace.prototype.validate = function (name) {
-        if (!name) {
-            throw new Error('The Namespace name doesn\'t exists');
-        }
-    };
-    Namespace.prototype.init = function (name) {
-        return typeof name === 'string';
-    };
-    Namespace.prototype.applyTo = function (context, name) {
-        context[name] = this;
-    };
-    Namespace.prototype.goto = function (name) {
-        var context = this;
-        if (name && name.length) {
-            var parts = this.parseName(name);
-            for (var _i = 0, parts_1 = parts; _i < parts_1.length; _i++) {
-                var part = parts_1[_i];
-                context = context[part];
+    Namespace.prototype.init = function (path) {
+        if (this.isValidPath(path)) {
+            var pathArr = this.parsePath(path);
+            var childName = pathArr.shift();
+            if (this.isValidKey(childName)) {
+                this.appendChildren(pathArr, childName);
             }
         }
-        return context;
     };
-    Namespace.Default = Namespace;
+    Namespace.prototype.isValidPath = function (path) {
+        return typeof path === 'string' || (Array.isArray(path) && path.length > 0);
+    };
+    Namespace.prototype.parsePath = function (path) {
+        var _this = this;
+        return Array.isArray(path) ? path : path.split(this.getSplitter()).filter(function (x) { return _this.filterName(x); });
+    };
+    Namespace.prototype.getSplitter = function () {
+        return /[\[\]."']/gi;
+    };
+    Namespace.prototype.filterName = function (name) {
+        return !!name && !!name.trim();
+    };
+    Namespace.prototype.isValidKey = function (name) {
+        return typeof name === 'string';
+    };
+    Namespace.prototype.getNamespaceClass = function () {
+        return this instanceof Namespace ? this.constructor : Namespace;
+    };
+    Namespace.prototype.take = function (path) {
+        var isValidPath = this.isValidPath(path);
+        var context = this;
+        var errContext = undefined;
+        var exists = true;
+        var parts = [];
+        var part;
+        if (isValidPath) {
+            parts = this.parsePath(path);
+            while (parts.length > 0) {
+                part = parts.shift();
+                if (part && context[part]) {
+                    context = context[part];
+                }
+                else {
+                    exists = false;
+                    errContext = part ? context[part] : undefined;
+                    break;
+                }
+            }
+        }
+        return {
+            last: context,
+            lastName: part,
+            errLast: errContext,
+            left: parts,
+            exists: exists,
+            isValidPath: isValidPath
+        };
+    };
+    Namespace.prototype.appendChildren = function (path, propName) {
+        var nsc = this.getNamespaceClass();
+        var ns = new nsc(path);
+        ns.applyTo(this, propName);
+        return ns;
+    };
+    Namespace.prototype.applyTo = function (context, name) {
+        if (!this.isValidKey(name))
+            throw new Error("name of context is " + ('' + name));
+        context[name] = this;
+    };
+    Namespace.prototype.exists = function (path) {
+        var res = this.take(path);
+        return res.exists;
+    };
+    Namespace.prototype.goto = function (path) {
+        var res = this.take(path);
+        if (res.exists) {
+            return res.last;
+        }
+        return res.errLast;
+    };
+    Namespace.prototype.namespace = function (path) {
+        var res = this.take(path);
+        if (!res.exists) {
+            var last = this.appendChildren.call(res.last, res.left.slice(), res.lastName);
+            return last.goto(res.left);
+        }
+        return res.last;
+    };
     return Namespace;
 }());
 

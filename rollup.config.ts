@@ -50,7 +50,7 @@ export default [
     plugins: [
       json(),
       typescript({
-        typescript: require("typescript")
+        typescript: require("typescript"),
       }),
       resolve(),
       commonjs(),

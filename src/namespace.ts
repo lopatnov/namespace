@@ -1,43 +1,111 @@
+type NamespacePath = string | Array<string>;
+
 /** Namespace class */
 export default class Namespace {
-  static Default = Namespace;
+  constructor(path?: NamespacePath) {
+    if (!(this instanceof Namespace))
+      return new Namespace(path);
+    this.init(path);
+  }
 
-  constructor(name: string | Array<string>) {
-    this.validate(name);
-    const p = this.parseName(name);
-    const n = p.shift();
-    if (this.init(n)) {
-      const ns = new Namespace.Default(p);
-      ns.applyTo(this, n as string);
+  protected init(path: NamespacePath | undefined) {
+    if (this.isValidPath(path)) {
+      const pathArr = this.parsePath(path as string | Array<string>);
+      const childName = pathArr.shift();
+      if (this.isValidKey(childName)) {
+        this.appendChildren(pathArr, childName as string);
+      }
     }
   }
 
-  private parseName(name: string | Array<string>) {
-    return Array.isArray(name) ? name : name.split(/[\[\]."']/gi).filter(x => !!x && !!x.trim())
+  private isValidPath(path: NamespacePath | undefined) {
+    return typeof path === 'string' || (Array.isArray(path) && path.length > 0);
   }
 
-  protected validate(name: string | Array<string>) {
-    if (!name) {
-      throw new Error('The Namespace name doesn\'t exists');
-    }
+  private parsePath(path: NamespacePath): string[] {
+    return Array.isArray(path) ? path : path.split(this.getSplitter()).filter(x => this.filterName(x))
   }
 
-  protected init(name: string | undefined): boolean {
+  protected getSplitter() {
+    return /[\[\]."']/gi;
+  }
+
+  protected filterName(name: string) {
+    return !!name && !!name.trim();
+  }
+
+  protected isValidKey(name: string | undefined): boolean {
     return typeof name === 'string';
   }
 
-  public applyTo(context: any, name: string) {
+  protected getNamespaceClass() {
+    return this instanceof Namespace ? this.constructor as typeof Namespace : Namespace;
+  }
+
+  protected take(path: NamespacePath) {
+    const isValidPath = this.isValidPath(path);
+    let context: any = this;
+    let errContext: any = undefined;
+    let exists = true;
+    let parts: string[] = [];
+    let part: string | undefined;
+
+    if (isValidPath) {
+      parts = this.parsePath(path);
+      while (parts.length > 0) {
+        part = parts.shift();
+        if (part && context[part]) {
+          context = context[part];
+        } else {
+          exists = false;
+          errContext = part ? context[part] : undefined;
+          break;
+        }
+      }
+    }
+
+    return {
+      last: context,
+      lastName: part,
+      errLast: errContext,
+      left: parts,
+      exists,
+      isValidPath
+    }
+  }
+
+  protected appendChildren(path: NamespacePath | undefined, propName: string) {
+    const nsc = this.getNamespaceClass();
+    const ns = new nsc(path);
+    ns.applyTo(this, propName as string);
+    return ns;
+  }
+
+  public applyTo(context: any, name: string): void {
+    if (!this.isValidKey(name))
+      throw new Error(`name of context is ${'' + name}`);
     context[name] = this;
   }
 
-  public goto(name: string | Array<string>): Namespace {
-    let context: any = this;
-    if (name && name.length) {
-      const parts = this.parseName(name);
-      for (const part of parts) {
-        context = context[part];
-      }
+  public exists(path: NamespacePath): boolean {
+    const res = this.take(path);
+    return res.exists;
+  }
+
+  public goto(path: NamespacePath): any {
+    const res = this.take(path);
+    if (res.exists) {
+      return res.last;
     }
-    return context;
+    return res.errLast;
+  }
+
+  public namespace(path: NamespacePath): Namespace {
+    const res = this.take(path);
+    if (!res.exists) {
+      const last = this.appendChildren.call(res.last, res.left.slice(), res.lastName as string);
+      return last.goto(res.left) as Namespace;
+    }
+    return res.last;
   }
 }

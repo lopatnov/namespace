@@ -46,19 +46,101 @@ import Namespace from "@lopatnov/namespace";
 var Namespace = require("@lopatnov/namespace");
 ```
 
-## How to use
+## TypeScript and JavaScript samples
+
+### new operator
 
 ```ts
-window.globalSpace = new Namespace('Eeny.meeny.miny.moe[Catch][a][tiger][by][the][toe]');
+var n = new Namespace("Hello.World");
+console.log((n as any).Hello.World instanceof Namespace);
+```
+
+```js
+window.globalSpace = new Namespace(
+  "Eeny.meeny.miny.moe[Catch][a][tiger][by][the][toe]"
+);
+console.log(Eeny.meeny.miny.moe.Catch.a.tiger.by.the.toe);
+```
+
+### direct call
+
+```js
+var n = Namespace("A.Pacific.Ocean"); // <-- without new
+console.log(n.A.Pacific.Ocean instanceof Namespace);
+```
+
+### apply namespace object to another
+
+```ts
+var x = new Namespace("Games.World");
+var y = {};
+var z = x.goto("Games.World");
+
+x.applyTo(y, "Hello");
+console.log(z === y.Hello.Games.World); // true
 ```
 
 ```ts
-var x = new Namespace('Games.World');
-var y = {};
-var z = x.goto('Games.World');
+var space: any = {};
+var n = new Namespace("cruising.airliner");
+n.applyTo(space, "A"); // <-- applyTo(context: any, name: string): void
+console.log(space.A.cruising.airliner instanceof Namespace);
+```
 
-x.applyTo(y, 'Hello');
-console.log(z === y.Hello.Games.World); // true
+### get inner object
+
+```ts
+var n: any = new Namespace("Yellow.Submarine");
+var y = n.goto("Yellow.Submarine"); // <-- goto(path: NamespacePath): any
+console.log(y === n.Yellow.Submarine);
+```
+
+### make inner namespace
+
+```ts
+const glob: Namespace & any = new Namespace();
+
+function namespace(path: string) {
+  return function (
+    target: any,
+    propertyKey?: string,
+    descriptor?: PropertyDescriptor
+  ) {
+    const ns = glob.namespace(path); // <-- make inner namespace
+    const name = propertyKey || target.prototype.constructor.name;
+    ns[name] = propertyKey ? target[propertyKey] : target;
+  };
+}
+
+@namespace("white.animals")
+class Actions {
+  @namespace("white.animals")
+  makeAlbino(animal: string) {
+    return `${animal} is white now`;
+  }
+}
+
+console.log(glob.white.animals.makeAlbino("unicorn")); // 'unicorn is white now'
+console.log(new glob.white.animals.Actions().makeAlbino("rose panther")); // 'rose panther is white now'
+```
+
+### check if path exists
+
+```ts
+const ns = new Namespace();
+ns.namespace("a.b.c.d");
+ns.namespace("a.b.c.e");
+ns.namespace("a.b.f.g");
+ns.namespace("a.i.h.k");
+ns.namespace("a.i.h.l");
+ns.namespace("a.m.n.o");
+
+console.log(ns.exists('a.b.c.d'));
+console.log(ns.exists('a.b.c.e'));
+console.log(ns.exists('a.b.f.g'));
+console.log(ns.exists('a.i.h.k'));
+console.log(ns.exists('a.i.h.l'));
+console.log(ns.exists('a.m.n.o'));
 ```
 
 ## Demo
