@@ -1,31 +1,32 @@
 {
-  "name": "@my-templates/sample-library",
+  "name": "@lopatnov/sample-library",
   "version": "1.1.1",
   "license": "Apache-2.0",
   "author": "lopatnov",
   "description": "Demonstrates a sample library template",
-  "homepage": "https://my-templates.github.io/TypeScript-Library/",
+  "homepage": "https://lopatnov.github.io/namespace/",
   "keywords": [
     "TypeScript",
     "JavaScript",
     "library",
-    "typescript-library",
-    "javascript-library"
+    "namespace",
+    "javascript-library",
+    "namespace"
   ],
-  "umdName": "sampleLibrary",
-  "libraryFile": "library",
-  "main": "dist/library.js",
-  "module": "dist/library.es.js",
-  "types": "dist/library.d.ts",
+  "umdName": "Namespace",
+  "libraryFile": "namespace",
+  "main": "dist/namespace.js",
+  "module": "dist/namespace.es.js",
+  "types": "dist/namespace.d.ts",
   "files": [
     "dist"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/My-Templates/TypeScript-Library.git"
+    "url": "git+https://github.com/lopatnov/namespace.git"
   },
   "bugs": {
-    "url": "https://github.com/My-Templates/TypeScript-Library/issues"
+    "url": "https://github.com/lopatnov/namespace/issues"
   },
   "scripts": {
     "build": "rollup -c rollup.config.ts",
