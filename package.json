@@ -1,17 +1,16 @@
 {
   "name": "@lopatnov/namespace",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "license": "Apache-2.0",
   "author": "lopatnov",
-  "description": "Demonstrates a sample library template",
+  "description": "Dynamic namespace creation",
   "homepage": "https://lopatnov.github.io/namespace/",
   "keywords": [
     "TypeScript",
     "JavaScript",
     "library",
     "namespace",
-    "javascript-library",
-    "namespace"
+    "javascript-library"
   ],
   "umdName": "Namespace",
   "libraryFile": "namespace",
@@ -40,18 +39,18 @@
   },
   "devDependencies": {
     "@lopatnov/rollup-plugin-uglify": "^2.1.0",
-    "@types/jest": "^26.0.9",
+    "@types/jest": "^26.0.23",
     "@types/typescript": "^2.0.0",
-    "jest": "^26.2.2",
-    "jest-config": "^26.2.2",
-    "rollup": "^2.23.1",
+    "jest": "^27.0.3",
+    "jest-config": "^27.0.3",
+    "rollup": "^2.50.5",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-sourcemaps": "^0.6.2",
-    "rollup-plugin-typescript2": "^0.27.2",
-    "terser": "^5.0.0",
-    "ts-jest": "^26.1.4",
-    "typescript": "^3.9.7"
+    "rollup-plugin-sourcemaps": "^0.6.3",
+    "rollup-plugin-typescript2": "^0.30.0",
+    "terser": "^5.7.0",
+    "ts-jest": "^27.0.2",
+    "typescript": "^4.3.2"
   }
 }

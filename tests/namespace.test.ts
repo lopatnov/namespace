@@ -14,18 +14,24 @@ describe("Base tests", () => {
   });
 
   it("should create namespace object by new operator", () => {
-    var n = new Namespace('Hello.World');
-    expect((n as any).Hello).toBeDefined();
-    expect((n as any).Hello.World).toBeDefined();
-    expect((n as any).Hello.World instanceof Namespace).toBeTruthy();
+    var n: any = new Namespace('Hello.World');
+    expect(n.Hello).toBeDefined();
+    expect(n.Hello.World).toBeDefined();
+    expect(n.Hello.World instanceof Namespace).toBeTruthy();
+  });
+
+  it("should create namespace object by new operator", () => {
+    var eeny: any = new Namespace('meeny.miny.moe[Catch][a][tiger][by][the][toe]');
+    expect(eeny.meeny.miny.moe.Catch.a.tiger.by.the.toe instanceof Namespace).toBeTruthy();
   });
 
   it("should create namespace object by direct call", () => {
-    var n = (Namespace as any)('A.Pacific.Ocean');
-    expect((n as any).A).toBeDefined();
-    expect((n as any).A.Pacific).toBeDefined();
-    expect((n as any).A.Pacific.Ocean).toBeDefined();
-    expect((n as any).A.Pacific.Ocean instanceof Namespace).toBeTruthy();
+    var dynamicNamespace: any = Namespace;
+    var a = dynamicNamespace('Pacific.Ocean');
+    expect(a).toBeDefined();
+    expect(a.Pacific).toBeDefined();
+    expect(a.Pacific.Ocean).toBeDefined();
+    expect(a.Pacific.Ocean instanceof Namespace).toBeTruthy();
   });
 
   it("should apply namespace object to another", () => {
@@ -35,10 +41,41 @@ describe("Base tests", () => {
     expect(space.A && space.A.cruising && space.A.cruising.airliner instanceof Namespace).toBeTruthy();
   });
 
+  it("should apply namespace object to another", () => {
+    var persons: any = {};
+    var extension = new Namespace('with.small.kitty');
+
+    extension.applyTo(persons, 'Julia');
+    extension.applyTo(persons, 'Kathy');
+    extension.applyTo(persons, 'Liza');
+
+    expect(persons.Julia.with.small.kitty instanceof Namespace).toBeTruthy();
+    expect(persons.Kathy.with.small.kitty instanceof Namespace).toBeTruthy();
+    expect(persons.Liza.with.small.kitty instanceof Namespace).toBeTruthy();
+  });
+
   it("should get inner object", () => {
     var n: any = new Namespace('Yellow.Submarine');
     var y = n.goto('Yellow.Submarine');
     expect(y === n.Yellow.Submarine).toBeTruthy();
+  });
+
+  it("should goto inner object", () => {
+    var kitchenRadar = new Namespace();
+    kitchenRadar.namespace('big.fruits');
+    kitchenRadar.namespace('big.eggs');
+    kitchenRadar.namespace('small.dishes');
+    kitchenRadar.namespace('small.cookies');
+
+    var fruits = kitchenRadar.goto('big.fruits');
+    var eggs = kitchenRadar.goto('big.eggs');
+    var dishes = kitchenRadar.goto('small.dishes');
+    var cookies = kitchenRadar.goto('small.cookies');
+
+    expect(fruits === (kitchenRadar as any).big.fruits).toBeTruthy();
+    expect(eggs === (kitchenRadar as any).big.eggs).toBeTruthy();
+    expect(dishes === (kitchenRadar as any).small.dishes).toBeTruthy();
+    expect(cookies === (kitchenRadar as any).small.cookies).toBeTruthy();
   });
 
   it("should be extendable", () => {
@@ -104,8 +141,10 @@ describe("Base tests", () => {
     expect((new glob.white.animals.Actions()).makeAlbino('rose panther')).toBe('rose panther is white now')
   });
 
-  it("should exists", () => {
+  it("should make many namespaces in a single", () => {
     const ns = new Namespace();
+    const anyNS: any = ns;
+
     ns.namespace('a.b.c.d');
     ns.namespace('a.b.c.e');
     ns.namespace('a.b.f.g');
@@ -119,6 +158,9 @@ describe("Base tests", () => {
     expect(ns.exists('a.i.h.k')).toBeTruthy();
     expect(ns.exists('a.i.h.l')).toBeTruthy();
     expect(ns.exists('a.m.n.o')).toBeTruthy();
+    expect((ns as any).a.b.c.d instanceof Namespace).toBeTruthy();
+    expect((ns as any).a.b.c.e instanceof Namespace).toBeTruthy();
+    expect(anyNS.a.b.f.g instanceof Namespace).toBeTruthy();
   });
 
 });

@@ -1,8 +1,8 @@
 # NOTICE
 
-TypeScript Library: @lopatnov/sample-library
+TypeScript Library: @lopatnov/namespace
 
-Copyright: 2020 Oleksandr Lopatnov
+Copyright: 2020–2021 Oleksandr Lopatnov
 
-This library based on @lopatnov/sample-library
+This library generated from My-Templates/TypeScript-Library
 Template link: <https://github.com/My-Templates/TypeScript-Library>

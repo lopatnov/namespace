@@ -48,99 +48,90 @@ var Namespace = require("@lopatnov/namespace");
 
 ## TypeScript and JavaScript samples
 
-### new operator
+### namespace creation
 
 ```ts
-var n = new Namespace("Hello.World");
-console.log((n as any).Hello.World instanceof Namespace);
+const ns = new Namespace(); // <-- create namespace variable
+
+ns.namespace("a.b.c.d"); // <-- create inner namespaces
+ns.namespace("a.b.c.e"); // <-- Function namespace(path: NamespacePath): Namespace
+ns.namespace("a.b.f.g"); // <--
+ns.namespace("a.i.h.k"); // <--
+ns.namespace("a.i.h.l"); // <--
+ns.namespace("a.m.n.o"); // <--
+
+// Access to inner namespaces
+const anyNS: any = ns; // <-- to avoid type casting
+console.log(anyNS.a.b.f.g instanceof Namespace); // true
+console.log((ns as any).a.b.c.d instanceof Namespace); // true
+console.log((ns as any).a.b.c.e instanceof Namespace); // true
 ```
 
-```js
-window.globalSpace = new Namespace(
-  "Eeny.meeny.miny.moe[Catch][a][tiger][by][the][toe]"
-);
-console.log(Eeny.meeny.miny.moe.Catch.a.tiger.by.the.toe);
-```
-
-### direct call
-
-```js
-var n = Namespace("A.Pacific.Ocean"); // <-- without new
-console.log(n.A.Pacific.Ocean instanceof Namespace);
-```
-
-### apply namespace object to another
+#### checking that object inside namespace exists
 
 ```ts
-var x = new Namespace("Games.World");
-var y = {};
-var z = x.goto("Games.World");
+// Function exists(path: NamespacePath): boolean
+console.log(ns.exists('a.b.c.d')); // true
+console.log(ns.exists('a.b.c.e')); // true
+console.log(ns.exists('a.b.f.g')); // true
+console.log(ns.exists('a.i.h.k')); // true
+console.log(ns.exists('a.i.h.l')); // true
+console.log(ns.exists('a.m.n.o')); // true
+```
 
-x.applyTo(y, "Hello");
-console.log(z === y.Hello.Games.World); // true
+### create namespace through direct call
+
+```ts
+var dynamicNamespace: any = Namespace; // <-- escape current TypeScript restrictions with any Type
+var a = dynamicNamespace('Pacific.Ocean'); // <-- call as function
+console.log(a.Pacific.Ocean instanceof Namespace); // true
+```
+
+### create namespace through new operator
+
+```ts
+var n: any = new Namespace("Hello.World");
+console.log(n.Hello.World instanceof Namespace); // true
 ```
 
 ```ts
-var space: any = {};
-var n = new Namespace("cruising.airliner");
-n.applyTo(space, "A"); // <-- applyTo(context: any, name: string): void
-console.log(space.A.cruising.airliner instanceof Namespace);
+var eeny: any = new Namespace('meeny.miny.moe[Catch][a][tiger][by][the][toe]');
+console.log(eeny.meeny.miny.moe.Catch.a.tiger.by.the.toe instanceof Namespace);  // true
 ```
 
-### get inner object
+### go to inner object
 
 ```ts
-var n: any = new Namespace("Yellow.Submarine");
-var y = n.goto("Yellow.Submarine"); // <-- goto(path: NamespacePath): any
-console.log(y === n.Yellow.Submarine);
+var kitchenRadar = new Namespace();
+    kitchenRadar.namespace('big.fruits');
+    kitchenRadar.namespace('big.eggs');
+    kitchenRadar.namespace('small.dishes');
+    kitchenRadar.namespace('small.cookies');
+
+    var fruits = kitchenRadar.goto('big.fruits'); // <-- goto(path: NamespacePath): any
+    var eggs = kitchenRadar.goto('big.eggs');
+    var dishes = kitchenRadar.goto('small.dishes');
+    var cookies = kitchenRadar.goto('small.cookies');
+
+    console.log(fruits === (kitchenRadar as any).big.fruits); // true
+    console.log(eggs === (kitchenRadar as any).big.eggs); // true
+    console.log(dishes === (kitchenRadar as any).small.dishes); // true
+    console.log(cookies === (kitchenRadar as any).small.cookies); // true
 ```
 
-### make inner namespace
+### apply namespace as a property of an object
 
 ```ts
-const glob: Namespace & any = new Namespace();
+var persons: any = {};
+var extension = new Namespace('with.small.kitty');
 
-function namespace(path: string) {
-  return function (
-    target: any,
-    propertyKey?: string,
-    descriptor?: PropertyDescriptor
-  ) {
-    const ns = glob.namespace(path); // <-- make inner namespace
-    const name = propertyKey || target.prototype.constructor.name;
-    ns[name] = propertyKey ? target[propertyKey] : target;
-  };
-}
+extension.applyTo(persons, 'Julia'); // Function applyTo(context: any, name: string): void
+extension.applyTo(persons, 'Kathy');
+extension.applyTo(persons, 'Liza');
 
-@namespace("white.animals")
-class Actions {
-  @namespace("white.animals")
-  makeAlbino(animal: string) {
-    return `${animal} is white now`;
-  }
-}
-
-console.log(glob.white.animals.makeAlbino("unicorn")); // 'unicorn is white now'
-console.log(new glob.white.animals.Actions().makeAlbino("rose panther")); // 'rose panther is white now'
-```
-
-### check if path exists
-
-```ts
-const ns = new Namespace();
-ns.namespace("a.b.c.d");
-ns.namespace("a.b.c.e");
-ns.namespace("a.b.f.g");
-ns.namespace("a.i.h.k");
-ns.namespace("a.i.h.l");
-ns.namespace("a.m.n.o");
-
-console.log(ns.exists('a.b.c.d'));
-console.log(ns.exists('a.b.c.e'));
-console.log(ns.exists('a.b.f.g'));
-console.log(ns.exists('a.i.h.k'));
-console.log(ns.exists('a.i.h.l'));
-console.log(ns.exists('a.m.n.o'));
+console.log(persons.Julia.with.small.kitty instanceof Namespace); // true
+console.log(persons.Kathy.with.small.kitty instanceof Namespace); // true
+console.log(persons.Liza.with.small.kitty instanceof Namespace); // true
 ```
 
 ## Demo
@@ -153,4 +144,4 @@ Test it with a runkit: [https://npm.runkit.com/@lopatnov/namespace](https://npm.
 
 License [Apache-2.0](https://github.com/lopatnov/namespace/blob/master/LICENSE)
 
-Copyright 2020 Oleksandr Lopatnov
+Copyright 2020–2021 Oleksandr Lopatnov
