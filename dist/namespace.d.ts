@@ -1,6 +1,7 @@
 declare type NamespacePath = string | Array<string>;
 /** Namespace class */
 export default class Namespace {
+    static attach<T>(to: T): T & Namespace;
     constructor(path?: NamespacePath);
     protected init(path: NamespacePath | undefined): void;
     private isValidPath;

@@ -67,6 +67,27 @@ console.log((ns as any).a.b.c.d instanceof Namespace); // true
 console.log((ns as any).a.b.c.e instanceof Namespace); // true
 ```
 
+### attach namespace to a current object
+
+```ts
+let shapes = {
+    color: "green",
+    count: 3
+};
+let shapesSpace = Namespace.attach(shapes);
+
+shapesSpace.namespace('Triangles');
+shapesSpace.namespace('Circles');
+shapesSpace.namespace('Rectangles.Squares');
+
+console.log(shapesSpace.exists('Triangles')); // true
+console.log(shapesSpace.exists('Circles')); // true
+console.log(shapesSpace.exists('Rectangles.Squares')); // true
+console.log(shapesSpace.color); // "green"
+console.log(shapesSpace.count); // 3
+console.log(shapes === shapesSpace); // true
+```
+
 #### checking that object inside namespace exists
 
 ```ts

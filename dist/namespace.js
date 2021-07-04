@@ -11,6 +11,14 @@
               return new Namespace(path);
           this.init(path);
       }
+      Namespace.attach = function (to) {
+          var names = Object.keys(Namespace.prototype);
+          for (var _i = 0, names_1 = names; _i < names_1.length; _i++) {
+              var name_1 = names_1[_i];
+              to[name_1] = Namespace.prototype[name_1];
+          }
+          return to;
+      };
       Namespace.prototype.init = function (path) {
           if (this.isValidPath(path)) {
               var pathArr = this.parsePath(path);

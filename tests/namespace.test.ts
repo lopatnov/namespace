@@ -163,4 +163,23 @@ describe("Base tests", () => {
     expect(anyNS.a.b.f.g instanceof Namespace).toBeTruthy();
   });
 
+  it("should attach namespace to any object", () => {
+    let shapes = {
+      color: "green",
+      count: 3
+    };
+    let shapesSpace = Namespace.attach(shapes);
+
+    shapesSpace.namespace('Triangles');
+    shapesSpace.namespace('Circles');
+    shapesSpace.namespace('Rectangles.Squares');
+
+    expect(shapesSpace.exists('Triangles')).toBeTruthy();
+    expect(shapesSpace.exists('Circles')).toBeTruthy();
+    expect(shapesSpace.exists('Rectangles.Squares')).toBeTruthy();
+    expect(shapesSpace.color).toBe("green");
+    expect(shapesSpace.count).toBe(3);
+    expect(shapes === shapesSpace).toBeTruthy();
+  });
+
 });

@@ -2,6 +2,14 @@ type NamespacePath = string | Array<string>;
 
 /** Namespace class */
 export default class Namespace {
+  public static attach<T>(to: T): T & Namespace {
+    let names = Object.keys(Namespace.prototype);
+    for (let name of names) {
+      (to as any)[name] = (Namespace.prototype as any)[name];
+    }
+    return to as T & Namespace;
+  }
+
   constructor(path?: NamespacePath) {
     if (!(this instanceof Namespace))
       return new Namespace(path);
