@@ -74,7 +74,7 @@ let shapes = {
     color: "green",
     count: 3
 };
-let shapesSpace = Namespace.attach(shapes);
+let shapesSpace = Namespace.attach(shapes); // <-- Namespace.attach(to: T) => T & Namespace
 
 shapesSpace.namespace('Triangles');
 shapesSpace.namespace('Circles');
