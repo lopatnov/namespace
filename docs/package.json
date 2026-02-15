@@ -1,0 +1,13 @@
+{
+  "name": "namespace-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch"
+  },
+  "devDependencies": {
+    "tsdown": "latest",
+    "typescript": "^5.7.0"
+  }
+}
