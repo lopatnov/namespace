@@ -288,7 +288,7 @@ route(router, "/component", lazyRoute(() => import("./placeholder-s56j8nQE.js"))
 route(router, "/plugin", lazyRoute(() => import("./placeholder-s56j8nQE.js")));
 route(router, "/examples/capitals", lazyRoute(() => import("./capitals-BYENxhV5.js")));
 route(router, "/examples/capitals/:id", lazyRoute(() => import("./capital-detail-BlQycVrG.js")));
-route(router, "/about", lazyRoute(() => import("./about-DUAIsW2U.js")));
+route(router, "/about", lazyRoute(() => import("./about-DxqSnmvA.js")));
 on(app, "router:after", (path) => {
 	$("[data-nav]").removeClass("active");
 	$(`[data-nav][href="${path}"]`).addClass("active");

@@ -1,26 +1,28 @@
-name: build-and-test-package
+name: Build & Test
 
-on: [push]
+on:
+  push:
+    branches: [master, update-2026]
+  pull_request:
+    branches: [master]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
-        node-version: [10.x, 12.x, 13.x, 14.x]
+        node-version: [20.x, 22.x]
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
-    - name: npm install, build, and test
-      run: |
-        npm ci
-        npm run build --if-present
-        npm test
-      env:
-        CI: true
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: cd namespace && npm ci
+      - run: cd router && npm ci
+      - run: cd docs && npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
