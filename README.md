@@ -6,7 +6,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
 [![GitHub stars](https://img.shields.io/github/stars/lopatnov/namespace)](https://github.com/lopatnov/namespace/stargazers)
 
-Lightweight modular namespace ecosystem for structured applications. Tree-shakeable pure functions, ES2024, zero dependencies.
+Lightweight modular namespace ecosystem for structured applications. Tree-shakeable pure functions, ES2024, zero dependencies. This is still a concept in the development stage.
 
 ## Installation
 
