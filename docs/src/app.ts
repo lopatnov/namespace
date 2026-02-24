@@ -1,4 +1,5 @@
 import { on } from "../../namespace/src/index.ts";
+import { onOffline, onOnline, registerSW } from "../../pwa/src/index.ts";
 import { createRouter, lazyRoute, route, start } from "../../router/src/index.ts";
 import { app } from "./ns.ts";
 import sidebarHTML from "./sidebar.html";
@@ -38,6 +39,17 @@ route(
   router,
   "/router/:method",
   lazyRoute(() => import("./pages/router-method.ts")),
+);
+
+route(
+  router,
+  "/plugin",
+  lazyRoute(() => import("./pages/plugin-overview.ts")),
+);
+route(
+  router,
+  "/plugin/:method",
+  lazyRoute(() => import("./pages/plugin-method.ts")),
 );
 
 route(
@@ -97,7 +109,12 @@ route(
 route(
   router,
   "/microfrontends",
-  lazyRoute(() => import("./pages/placeholder.ts")),
+  lazyRoute(() => import("./pages/microfrontends-overview.ts")),
+);
+route(
+  router,
+  "/microfrontends/:method",
+  lazyRoute(() => import("./pages/microfrontends-method.ts")),
 );
 
 route(
@@ -137,3 +154,15 @@ on(app, "router:after", (path: string) => {
 // --- Start ---
 
 start(router);
+
+// --- PWA ---
+
+registerSW("./sw.js");
+
+onOffline(() => {
+  $("#offline-banner").removeClass("d-none");
+});
+
+onOnline(() => {
+  $("#offline-banner").addClass("d-none");
+});

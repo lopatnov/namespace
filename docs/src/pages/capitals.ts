@@ -1,3 +1,4 @@
+import { bind, reactive } from "../../../mvvm/src/index.ts";
 import { get } from "../../../namespace/src/index.ts";
 import { navigate } from "../../../router/src/index.ts";
 import { capitals } from "../data/capitals.ts";
@@ -8,21 +9,24 @@ export default function capitalsPage(container: Element) {
   const router = get(app, "router") as any;
   container.innerHTML = template;
 
-  const rows = capitals
-    .map(
-      (c) => `
-    <tr class="capital-row" data-id="${c.id}" style="cursor:pointer">
-      <td><strong>${c.name}</strong></td>
-      <td>${c.country}</td>
-      <td><span class="badge bg-info text-dark">${c.currencyName}</span></td>
-      <td class="text-end"><i class="bi bi-chevron-right text-muted"></i></td>
-    </tr>`,
-    )
-    .join("");
+  const state = reactive({
+    query: "",
+    items: [...capitals],
+    onFilter(this: { query: string; items: typeof capitals }) {
+      const q = this.query.toLowerCase().trim();
+      this.items = q
+        ? capitals.filter(
+            (c) => c.name.toLowerCase().includes(q) || c.country.toLowerCase().includes(q),
+          )
+        : [...capitals];
+      $("#capitals-empty").toggleClass("d-none", this.items.length > 0);
+    },
+  });
 
-  $("#capitals-tbody").html(rows);
+  bind(state, container);
 
-  $(".capital-row").on("click", function () {
+  // Click delegation — works with MVVM foreach-rendered rows
+  $(container).on("click", ".capital-row", function () {
     navigate(router, `/examples/capitals/${$(this).data("id")}`);
   });
 }

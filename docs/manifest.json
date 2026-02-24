@@ -1,0 +1,17 @@
+{
+  "name": "@lopatnov/namespace — Documentation",
+  "short_name": "namespace",
+  "description": "Modular ecosystem of utilities for jQuery applications",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0d6efd",
+  "icons": [
+    {
+      "src": "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/box-seam.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
