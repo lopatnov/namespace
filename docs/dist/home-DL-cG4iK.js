@@ -3,21 +3,20 @@ var home_default = "<div class=\"py-4\">\r\n  <h1 class=\"display-5 fw-bold mb-3
 
 //#endregion
 //#region src/pages/home.ts
-const quickExample = `import { createNamespace, provide, inject, on, scope } from '@lopatnov/namespace';
+const quickExample = `import { createApp } from '@lopatnov/namespace';
 import { createRouter, route, lazyRoute, start } from '@lopatnov/namespace-router';
 
-// Create app namespace
-const app = createNamespace();
-const auth = scope(app, 'auth');
+// Create isolated app (perfect for microfrontends)
+const app = createApp();
 
-// Provide services
-provide(auth, 'token', 'abc123');
-
-// Listen to changes
-on(app, 'change', (key, val) => console.log(key, val));
+// Set services — chainable fluent API
+app
+  .use('api.url', '/api/v1')
+  .use('auth.token', 'abc123')
+  .on('change', (key, val) => console.log(key, val));
 
 // Create SPA router
-const router = createRouter(app, { mode: 'hash', root: '#app' });
+const router = createRouter(app.ns, { mode: 'hash', root: '#app' });
 route(router, '/', lazyRoute(() => import('./pages/home')));
 route(router, '/users/:id', lazyRoute(() => import('./pages/user')));
 start(router);`;

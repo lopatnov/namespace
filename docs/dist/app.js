@@ -1,62 +1,69 @@
 //#region ../namespace/src/index.ts
-const STORE = Symbol("ns.store");
-const EVENTS = Symbol("ns.events");
-const PARENT = Symbol("ns.parent");
-const PATH = Symbol("ns.path");
+const _ns = /* @__PURE__ */ new WeakMap();
 /** Create a new root namespace. */
 function createNamespace() {
-	return {
-		[STORE]: /* @__PURE__ */ new Map(),
-		[EVENTS]: /* @__PURE__ */ new Map(),
-		[PARENT]: null,
-		[PATH]: ""
-	};
+	const ns = Object.create(null);
+	_ns.set(ns, {
+		store: /* @__PURE__ */ new Map(),
+		events: /* @__PURE__ */ new Map(),
+		parent: null,
+		path: ""
+	});
+	return ns;
 }
-/** Register a value under a key. Supports dot-paths: `provide(ns, 'a.b.c', value)`. */
-function provide(ns, key, value) {
+/** Register a value under a key. Supports dot-paths: `set(ns, 'a.b.c', value)`. */
+function set(ns, key, value) {
 	const parts = parsePath(key);
+	const meta = getMeta(ns);
 	if (parts.length === 1) {
-		const old = ns[STORE].get(parts[0]);
-		ns[STORE].set(parts[0], value);
+		const old = meta.store.get(parts[0]);
+		meta.store.set(parts[0], value);
 		emit(ns, "change", key, value, old);
 		return;
 	}
 	let current = ns;
 	for (let i = 0; i < parts.length - 1; i++) current = ensureChild(current, parts[i]);
 	const leaf = parts[parts.length - 1];
-	const old = current[STORE].get(leaf);
-	current[STORE].set(leaf, value);
+	const currentMeta = getMeta(current);
+	const old = currentMeta.store.get(leaf);
+	currentMeta.store.set(leaf, value);
 	const fullPath = buildPath(current, leaf);
-	emitUp(ns, current, "change", fullPath, value, old);
+	emitUp(current, "change", fullPath, value, old);
 }
 /** Retrieve a value by key. Returns `undefined` if not found. */
-function inject(ns, key) {
+function get(ns, key) {
 	const parts = parsePath(key);
 	let current = ns;
 	for (let i = 0; i < parts.length - 1; i++) {
-		const child = current[STORE].get(parts[i]);
+		const child = getMeta(current).store.get(parts[i]);
 		if (!isNamespace(child)) return void 0;
 		current = child;
 	}
-	return current[STORE].get(parts[parts.length - 1]);
+	return getMeta(current).store.get(parts[parts.length - 1]);
 }
 /** Subscribe to an event. Returns an unsubscribe function. */
 function on(ns, event, handler) {
-	let handlers = ns[EVENTS].get(event);
+	const meta = getMeta(ns);
+	let handlers = meta.events.get(event);
 	if (!handlers) {
 		handlers = /* @__PURE__ */ new Set();
-		ns[EVENTS].set(event, handlers);
+		meta.events.set(event, handlers);
 	}
 	handlers.add(handler);
 	return () => {
 		handlers.delete(handler);
-		if (handlers.size === 0) ns[EVENTS].delete(event);
+		if (handlers.size === 0) meta.events.delete(event);
 	};
 }
 /** Emit an event with arguments. */
 function emit(ns, event, ...args) {
-	const handlers = ns[EVENTS].get(event);
+	const handlers = getMeta(ns).events.get(event);
 	if (handlers) for (const handler of handlers) handler(...args);
+}
+function getMeta(ns) {
+	const meta = _ns.get(ns);
+	if (!meta) throw new Error("Invalid namespace object");
+	return meta;
 }
 function parsePath(key) {
 	const parts = key.split(".");
@@ -64,29 +71,29 @@ function parsePath(key) {
 	return parts;
 }
 function isNamespace(value) {
-	return value !== null && typeof value === "object" && STORE in value;
+	return value !== null && typeof value === "object" && _ns.has(value);
 }
 function ensureChild(ns, key) {
-	const existing = ns[STORE].get(key);
+	const meta = getMeta(ns);
+	const existing = meta.store.get(key);
 	if (isNamespace(existing)) return existing;
-	const child = {
-		[STORE]: /* @__PURE__ */ new Map(),
-		[EVENTS]: /* @__PURE__ */ new Map(),
-		[PARENT]: ns,
-		[PATH]: ns[PATH] ? `${ns[PATH]}.${key}` : key
-	};
-	ns[STORE].set(key, child);
+	const child = createNamespace();
+	const childMeta = getMeta(child);
+	childMeta.parent = ns;
+	childMeta.path = meta.path ? `${meta.path}.${key}` : key;
+	meta.store.set(key, child);
 	return child;
 }
 function buildPath(ns, leaf) {
-	return ns[PATH] ? `${ns[PATH]}.${leaf}` : leaf;
+	const p = getMeta(ns).path;
+	return p ? `${p}.${leaf}` : leaf;
 }
-function emitUp(rootNs, currentNs, event, ...args) {
+function emitUp(currentNs, event, ...args) {
 	emit(currentNs, event, ...args);
-	let cursor = currentNs[PARENT];
+	let cursor = getMeta(currentNs).parent;
 	while (cursor !== null) {
 		emit(cursor, event, ...args);
-		cursor = cursor[PARENT];
+		cursor = getMeta(cursor).parent;
 	}
 }
 
@@ -104,7 +111,7 @@ function createRouter(ns, options = {}) {
 		currentPath: "",
 		unlisten: null
 	};
-	provide(ns, "router", router);
+	set(ns, "router", router);
 	return router;
 }
 /** Start the router — listen to URL changes and handle the current URL. */
@@ -248,11 +255,12 @@ const sidebarHTML = `
     <div class="section-title">Namespace</div>
     <a class="nav-link" href="/namespace" data-nav>Overview</a>
     <a class="nav-link sub" href="/namespace/createNamespace" data-nav>createNamespace</a>
-    <a class="nav-link sub" href="/namespace/provide" data-nav>provide / inject</a>
+    <a class="nav-link sub" href="/namespace/set" data-nav>set / get</a>
     <a class="nav-link sub" href="/namespace/has" data-nav>has / remove / keys</a>
     <a class="nav-link sub" href="/namespace/on" data-nav>on / off / emit</a>
     <a class="nav-link sub" href="/namespace/scope" data-nav>scope / root / parent</a>
-    <a class="nav-link sub" href="/namespace/toJSON" data-nav>toJSON / clone / merge</a>
+    <a class="nav-link sub" href="/namespace/toJSON" data-nav>toJSON / clone / extend</a>
+    <a class="nav-link sub" href="/namespace/createApp" data-nav>createApp / App</a>
 
     <div class="section-title">Router</div>
     <a class="nav-link" href="/router" data-nav>Overview</a>
@@ -278,15 +286,15 @@ const sidebarHTML = `
 `;
 $("#sidebar-desktop").html(sidebarHTML);
 $("#sidebar-mobile").html(sidebarHTML);
-route(router, "/", lazyRoute(() => import("./home-WFbBsXHK.js")));
-route(router, "/namespace", lazyRoute(() => import("./namespace-overview-DhJEoxKR.js")));
-route(router, "/namespace/:method", lazyRoute(() => import("./namespace-method-DDessNRy.js")));
-route(router, "/router", lazyRoute(() => import("./router-overview-Bwnmk4va.js")));
+route(router, "/", lazyRoute(() => import("./home-DL-cG4iK.js")));
+route(router, "/namespace", lazyRoute(() => import("./namespace-overview-C9VfjgII.js")));
+route(router, "/namespace/:method", lazyRoute(() => import("./namespace-method-BThlwK4x.js")));
+route(router, "/router", lazyRoute(() => import("./router-overview-DJhxKGdN.js")));
 route(router, "/router/:method", lazyRoute(() => import("./router-method-CDpgvwyv.js")));
-route(router, "/mvvm", lazyRoute(() => import("./placeholder-s56j8nQE.js")));
-route(router, "/component", lazyRoute(() => import("./placeholder-s56j8nQE.js")));
-route(router, "/plugin", lazyRoute(() => import("./placeholder-s56j8nQE.js")));
-route(router, "/examples/capitals", lazyRoute(() => import("./capitals-BYENxhV5.js")));
+route(router, "/mvvm", lazyRoute(() => import("./placeholder-Bc7VVCU2.js")));
+route(router, "/component", lazyRoute(() => import("./placeholder-Bc7VVCU2.js")));
+route(router, "/plugin", lazyRoute(() => import("./placeholder-Bc7VVCU2.js")));
+route(router, "/examples/capitals", lazyRoute(() => import("./capitals-CzF4H5E4.js")));
 route(router, "/examples/capitals/:id", lazyRoute(() => import("./capital-detail-BlQycVrG.js")));
 route(router, "/about", lazyRoute(() => import("./about-DxqSnmvA.js")));
 on(app, "router:after", (path) => {
@@ -299,4 +307,4 @@ on(app, "router:after", (path) => {
 start(router);
 
 //#endregion
-export { inject as i, getCurrentPath as n, navigate as r, app as t };
+export { get as i, getCurrentPath as n, navigate as r, app as t };

@@ -1,5 +1,5 @@
 import { on } from "../../namespace/src/index.ts";
-import { createRouter, getCurrentPath, lazyRoute, route, start } from "../../router/src/index.ts";
+import { createRouter, lazyRoute, route, start } from "../../router/src/index.ts";
 import { app } from "./ns.ts";
 
 const router = createRouter(app, { mode: "hash", root: "#app" });
@@ -14,11 +14,12 @@ const sidebarHTML = `
     <div class="section-title">Namespace</div>
     <a class="nav-link" href="/namespace" data-nav>Overview</a>
     <a class="nav-link sub" href="/namespace/createNamespace" data-nav>createNamespace</a>
-    <a class="nav-link sub" href="/namespace/provide" data-nav>provide / inject</a>
+    <a class="nav-link sub" href="/namespace/set" data-nav>set / get</a>
     <a class="nav-link sub" href="/namespace/has" data-nav>has / remove / keys</a>
     <a class="nav-link sub" href="/namespace/on" data-nav>on / off / emit</a>
     <a class="nav-link sub" href="/namespace/scope" data-nav>scope / root / parent</a>
-    <a class="nav-link sub" href="/namespace/toJSON" data-nav>toJSON / clone / merge</a>
+    <a class="nav-link sub" href="/namespace/toJSON" data-nav>toJSON / clone / extend</a>
+    <a class="nav-link sub" href="/namespace/createApp" data-nav>createApp / App</a>
 
     <div class="section-title">Router</div>
     <a class="nav-link" href="/router" data-nav>Overview</a>

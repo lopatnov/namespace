@@ -1,4 +1,4 @@
-import { i as inject, r as navigate, t as app } from "./app.js";
+import { i as get, r as navigate, t as app } from "./app.js";
 import { t as capitals } from "./capitals-DITjSB8O.js";
 
 //#region src/pages/capitals.html
@@ -7,7 +7,7 @@ var capitals_default = "<div class=\"py-4\">\r\n  <h1 class=\"mb-1\"><i class=\"
 //#endregion
 //#region src/pages/capitals.ts
 function capitalsPage(container) {
-	const router = inject(app, "router");
+	const router = get(app, "router");
 	container.innerHTML = capitals_default;
 	const rows = capitals.map((c) => `
     <tr class="capital-row" data-id="${c.id}" style="cursor:pointer">

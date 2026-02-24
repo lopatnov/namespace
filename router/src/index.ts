@@ -3,8 +3,8 @@
 // Pure tree-shakeable functions. ES2024.
 // ============================================================
 
-import type { EventHandler, Namespace } from "@lopatnov/namespace";
-import { emit, inject, on, provide, scope } from "@lopatnov/namespace";
+import type { Namespace } from "@lopatnov/namespace";
+import { emit, set } from "@lopatnov/namespace";
 
 // --- Types ---
 
@@ -59,7 +59,7 @@ export function createRouter(ns: Namespace, options: RouterOptions = {}): Router
   };
 
   // Register in namespace
-  provide(ns, "router", router);
+  set(ns, "router", router);
 
   return router;
 }

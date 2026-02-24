@@ -1,13 +1,13 @@
-import { i as inject, r as navigate, t as app } from "./app.js";
-import { t as namespaceMethods } from "./namespace-methods-DOp6MOlq.js";
+import { i as get, r as navigate, t as app } from "./app.js";
+import { t as namespaceMethods } from "./namespace-methods-COBu8SvY.js";
 
 //#region src/pages/namespace-overview.html
-var namespace_overview_default = "<div class=\"py-4\">\r\n  <h1 class=\"mb-1\">Namespace</h1>\r\n  <p class=\"lead text-body-secondary\">Core kernel — service registry, event bus, scoped namespaces.</p>\r\n  <hr />\r\n  <pre class=\"bg-dark text-light p-3 rounded\"><code>import { createNamespace, provide, inject, on, scope } from '@lopatnov/namespace';</code></pre>\r\n  <div class=\"row g-3 mt-3\" id=\"method-cards\"></div>\r\n</div>\r\n";
+var namespace_overview_default = "<div class=\"py-4\">\r\n  <h1 class=\"mb-1\">Namespace</h1>\r\n  <p class=\"lead text-body-secondary\">Core kernel — service registry, event bus, scoped namespaces.</p>\r\n  <hr />\r\n  <pre class=\"bg-dark text-light p-3 rounded\"><code>import { createApp, set, get, on, scope } from '@lopatnov/namespace';</code></pre>\r\n  <div class=\"row g-3 mt-3\" id=\"method-cards\"></div>\r\n</div>\r\n";
 
 //#endregion
 //#region src/pages/namespace-overview.ts
 function namespaceOverview(container) {
-	const router = inject(app, "router");
+	const router = get(app, "router");
 	container.innerHTML = namespace_overview_default;
 	const cards = namespaceMethods.map((g) => `
     <div class="col-md-6">

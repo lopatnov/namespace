@@ -1,4 +1,4 @@
-import { i as inject, n as getCurrentPath, t as app } from "./app.js";
+import { i as get, n as getCurrentPath, t as app } from "./app.js";
 
 //#region src/pages/placeholder.html
 var placeholder_default = "<div class=\"py-4\">\r\n  <h1 id=\"module-name\"></h1>\r\n  <span class=\"badge bg-secondary fs-6 mb-4\">Coming soon</span>\r\n  <hr />\r\n  <div class=\"card\">\r\n    <div class=\"card-body\">\r\n      <p class=\"mb-0\" id=\"module-description\"></p>\r\n    </div>\r\n  </div>\r\n  <p class=\"text-muted mt-4\">\r\n    This module is planned for a future release. Check the\r\n    <a href=\"https://github.com/lopatnov/namespace\" target=\"_blank\">GitHub repository</a>\r\n    for progress updates.\r\n  </p>\r\n</div>\r\n";
@@ -20,7 +20,7 @@ const modules = {
 	}
 };
 function placeholder(container) {
-	const mod = modules[getCurrentPath(inject(app, "router"))] ?? {
+	const mod = modules[getCurrentPath(get(app, "router"))] ?? {
 		title: "Unknown",
 		description: ""
 	};

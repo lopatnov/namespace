@@ -1,11 +1,11 @@
-import { inject } from "../../../namespace/src/index.ts";
+import { get } from "../../../namespace/src/index.ts";
 import { navigate } from "../../../router/src/index.ts";
 import { routerMethods } from "../data/router-methods.ts";
 import { app } from "../ns.ts";
 import template from "./router-overview.html";
 
 export default function routerOverview(container: Element) {
-  const router = inject(app, "router") as any;
+  const router = get(app, "router") as any;
   container.innerHTML = template;
 
   const cards = routerMethods

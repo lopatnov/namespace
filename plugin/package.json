@@ -1,15 +1,13 @@
 {
-  "name": "@lopatnov/namespace",
+  "name": "@lopatnov/namespace-plugin",
   "version": "3.0.0",
   "license": "Apache-2.0",
   "author": "lopatnov",
-  "description": "Lightweight namespace kernel — service registry, event bus, scoped namespaces. Tree-shakeable pure functions, ES2024.",
-  "homepage": "https://lopatnov.github.io/namespace/",
+  "description": "Plugin system for @lopatnov/namespace — definePlugin, usePlugin, installed, uninstallPlugin. Tree-shakeable, ES2024.",
   "keywords": [
+    "plugin",
     "namespace",
     "dependency-injection",
-    "service-locator",
-    "event-bus",
     "tree-shakeable",
     "TypeScript",
     "ES2024"
@@ -28,12 +26,11 @@
   "files": [
     "dist"
   ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/lopatnov/namespace.git"
+  "publishConfig": {
+    "access": "public"
   },
-  "bugs": {
-    "url": "https://github.com/lopatnov/namespace/issues"
+  "peerDependencies": {
+    "@lopatnov/namespace": "^3.0.0"
   },
   "scripts": {
     "build": "tsdown",
@@ -41,6 +38,7 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@lopatnov/namespace": "file:../namespace",
     "tsdown": "latest",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
