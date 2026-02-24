@@ -14,10 +14,10 @@ const modules: Record<string, { title: string; description: string }> = {
     description:
       "Reusable UI blocks with scoped CSS, template literals or .html templates, state management, and lifecycle hooks (mounted/unmounted). Works with any jQuery plugin.",
   },
-  "/plugin": {
-    title: "Plugins",
+  "/microfrontends": {
+    title: "Microfrontends",
     description:
-      "Structured plugin system. A plugin is a package that registers its own routes, components, and services. Supports dynamic loading without rebuild.",
+      "Cross-app and cross-tab communication bus, leader election, and app registry. BroadcastChannel-based event bus for orchestrating multiple isolated apps on the same page or across browser tabs.",
   },
 };
 

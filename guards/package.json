@@ -1,0 +1,56 @@
+{
+  "name": "@lopatnov/namespace-guards",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "author": "lopatnov",
+  "description": "Route and service guards for @lopatnov/namespace. Intercept navigation and protect namespace keys with access checks.",
+  "keywords": [
+    "guards",
+    "router",
+    "authorization",
+    "namespace",
+    "tree-shakeable",
+    "ES2024"
+  ],
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lopatnov/namespace.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lopatnov/namespace/issues"
+  },
+  "peerDependencies": {
+    "@lopatnov/namespace": "^3.0.0",
+    "@lopatnov/namespace-router": "^3.0.0"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@lopatnov/namespace": "file:../namespace",
+    "@lopatnov/namespace-router": "file:../router",
+    "jsdom": "^28.1.0",
+    "tsdown": "latest",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

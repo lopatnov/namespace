@@ -217,6 +217,25 @@ async function handleNavigation(router: Router): Promise<void> {
   // Don't re-navigate to the same path
   if (pathOnly === router.currentPath) return;
 
+  // Let guards intercept before we tear down the current page.
+  const nav = { path: pathOnly, query, cancelled: false, redirectTo: null as string | null };
+  emit(router.ns, "router:beforeNavigate", nav);
+
+  if (nav.cancelled) {
+    if (router.mode === "history") {
+      window.history.replaceState(null, "", router.currentPath || "/");
+    } else {
+      const cur = router.currentPath || "/";
+      window.location.hash = cur.startsWith("#") ? cur : `#${cur}`;
+    }
+    return;
+  }
+
+  if (nav.redirectTo) {
+    navigate(router, nav.redirectTo);
+    return;
+  }
+
   // Cleanup previous route
   router.currentCleanup?.();
   router.currentCleanup = null;
