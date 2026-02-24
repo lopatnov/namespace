@@ -1,12 +1,30 @@
 # @lopatnov/namespace
 
-[![npm](https://img.shields.io/npm/dt/@lopatnov/namespace)](https://www.npmjs.com/package/@lopatnov/namespace)
-[![NPM version](https://badge.fury.io/js/%40lopatnov%2Fnamespace.svg)](https://www.npmjs.com/package/@lopatnov/namespace)
+> Lightweight modular namespace ecosystem for structured applications.
+> Tree-shakeable pure functions, ES2024, zero dependencies.
+
+[![npm downloads](https://img.shields.io/npm/dt/@lopatnov/namespace)](https://www.npmjs.com/package/@lopatnov/namespace)
+[![npm version](https://badge.fury.io/js/%40lopatnov%2Fnamespace.svg)](https://www.npmjs.com/package/@lopatnov/namespace)
 [![License](https://img.shields.io/github/license/lopatnov/namespace)](https://github.com/lopatnov/namespace/blob/master/LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
+[![GitHub issues](https://img.shields.io/github/issues/lopatnov/namespace)](https://github.com/lopatnov/namespace/issues)
 [![GitHub stars](https://img.shields.io/github/stars/lopatnov/namespace)](https://github.com/lopatnov/namespace/stargazers)
 
-Lightweight modular namespace ecosystem for structured applications. Tree-shakeable pure functions, ES2024, zero dependencies. This is still a concept in the development stage.
+> **Early access:** API is stable but the ecosystem is actively evolving.
+
+---
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [API](#api)
+- [Example](#example)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [Built With](#built-with)
+- [License](#license)
+
+---
 
 ## Installation
 
@@ -14,6 +32,8 @@ Lightweight modular namespace ecosystem for structured applications. Tree-shakea
 npm install @lopatnov/namespace
 npm install @lopatnov/namespace-router   # SPA routing (optional)
 ```
+
+---
 
 ## Usage
 
@@ -30,6 +50,8 @@ import { createRouter, route, lazyRoute, start } from '@lopatnov/namespace-route
 const { createNamespace, provide, inject } = require('@lopatnov/namespace');
 const { createRouter, route, start } = require('@lopatnov/namespace-router');
 ```
+
+---
 
 ## API
 
@@ -70,6 +92,8 @@ const { createRouter, route, start } = require('@lopatnov/namespace-router');
 | `forward` | `() => void` | Go forward in history |
 | `getCurrentPath` | `(router) => string` | Get current route path |
 
+---
+
 ## Example
 
 ```typescript
@@ -95,27 +119,33 @@ route(router, '/users/:id', lazyRoute(() => import('./pages/user')));
 start(router);
 ```
 
+---
+
 ## Documentation
 
 Full interactive documentation: **[lopatnov.github.io/namespace](https://lopatnov.github.io/namespace/)**
 
+---
+
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](legacy/CONTRIBUTING.md) for guidelines.
+Contributions are welcome! Please read [CONTRIBUTING.md](legacy/CONTRIBUTING.md) before opening a pull request.
 
-## License
-
-[Apache-2.0](LICENSE)
-
-Copyright 2019-2026 Oleksandr Lopatnov
+- Bug reports → [open an issue](https://github.com/lopatnov/namespace/issues)
+- Questions → [Discussions](https://github.com/lopatnov/namespace/discussions)
+- Found it useful? A [star on GitHub](https://github.com/lopatnov/namespace) helps others discover the project
 
 ---
 
-### Author
+## Built With
 
-**Oleksandr Lopatnov**
+- [TypeScript](https://www.typescriptlang.org/) — strict typing throughout
+- [tsdown](https://tsdown.dev/) — fast TypeScript bundler
+- [Vitest](https://vitest.dev/) — unit testing with coverage
+- [Biome](https://biomejs.dev/) — linting and formatting
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=flat&logo=linkedin)](https://www.linkedin.com/in/lopatnov/)
-[![GitHub](https://img.shields.io/badge/GitHub-Follow-black?style=flat&logo=github)](https://github.com/lopatnov)
+---
 
-If you find this project useful, please consider giving it a star on GitHub!
+## License
+
+[Apache-2.0](https://github.com/lopatnov/namespace/blob/master/LICENSE) © 2019–2026 [Oleksandr Lopatnov](https://github.com/lopatnov) · [LinkedIn](https://www.linkedin.com/in/lopatnov/)
