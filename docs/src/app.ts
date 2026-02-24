@@ -74,9 +74,26 @@ route(
 );
 route(
   router,
-  "/component",
-  lazyRoute(() => import("./pages/placeholder.ts")),
+  "/pwa",
+  lazyRoute(() => import("./pages/pwa-overview.ts")),
 );
+route(
+  router,
+  "/pwa/:method",
+  lazyRoute(() => import("./pages/pwa-method.ts")),
+);
+
+route(
+  router,
+  "/component",
+  lazyRoute(() => import("./pages/component-overview.ts")),
+);
+route(
+  router,
+  "/component/:method",
+  lazyRoute(() => import("./pages/component-method.ts")),
+);
+
 route(
   router,
   "/microfrontends",
