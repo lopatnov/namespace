@@ -65,7 +65,12 @@ route(
 route(
   router,
   "/mvvm",
-  lazyRoute(() => import("./pages/placeholder.ts")),
+  lazyRoute(() => import("./pages/mvvm-overview.ts")),
+);
+route(
+  router,
+  "/mvvm/:method",
+  lazyRoute(() => import("./pages/mvvm-method.ts")),
 );
 route(
   router,
