@@ -1,5 +1,5 @@
-import { n as navigate, r as get, t as app } from "./app.js";
-import { t as pluginMethods } from "./plugin-methods-BXkaHER1.js";
+import { n as navigate, r as inject, t as app } from "./app.js";
+import { t as pluginMethods } from "./plugin-methods-DSmgRcwr.js";
 
 //#region src/pages/plugin-overview.html
 var plugin_overview_default = "<div class=\"py-4\">\r\n  <h1 class=\"mb-1\">Plugin</h1>\r\n  <p class=\"lead text-body-secondary\">Extensible plugin system for pure-function users. Define, install, query, and uninstall plugins on any namespace at runtime.</p>\r\n  <hr />\r\n  <pre class=\"bg-dark text-light p-3 rounded\"><code>import { definePlugin, usePlugin, installed, uninstallPlugin } from '@lopatnov/namespace-plugin';</code></pre>\r\n  <div class=\"row g-3 mt-3\" id=\"method-cards\"></div>\r\n</div>\r\n";
@@ -7,7 +7,7 @@ var plugin_overview_default = "<div class=\"py-4\">\r\n  <h1 class=\"mb-1\">Plug
 //#endregion
 //#region src/pages/plugin-overview.ts
 function pluginOverview(container) {
-	const router = get(app, "router");
+	const router = inject(app, "router");
 	container.innerHTML = plugin_overview_default;
 	const cards = pluginMethods.map((g) => `
     <div class="col-md-6">

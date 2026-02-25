@@ -30,8 +30,9 @@ declare function createBus(channelName: string): Bus;
  * Elect a leader among all tabs/windows sharing the same name.
  * Uses localStorage + storage events for cross-tab coordination.
  *
- * The first instance that starts becomes leader. If the leader tab is closed
- * or calls `destroy()`, a remaining tab takes over within ~600 ms.
+ * The first visible tab becomes leader. When the leader tab loses focus,
+ * a visible tab will take over after a short debounce delay (_VISIBILITY_DELAY).
+ * This prevents rapid leader-hopping when quickly switching between tabs.
  *
  * Falls back to always-leader when localStorage is unavailable.
  *

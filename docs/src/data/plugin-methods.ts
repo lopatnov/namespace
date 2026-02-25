@@ -12,12 +12,12 @@ export const pluginMethods: MethodGroup[] = [
         description:
           "Identity function for TypeScript inference. Zero runtime overhead. Wrap your plugin object in `definePlugin` to get full type-checking on `install` / `uninstall` callbacks and options.",
         example: `import { definePlugin } from '@lopatnov/namespace-plugin';
-import { set } from '@lopatnov/namespace';
+import { provide } from '@lopatnov/namespace';
 
 const LogPlugin = definePlugin({
   id: 'log',
   install(ns) {
-    set(ns, 'logger', {
+    provide(ns, 'logger', {
       info: (msg: string) => console.log('[INFO]', msg),
       error: (msg: string) => console.error('[ERROR]', msg),
     });
@@ -46,7 +46,7 @@ usePlugin(app.ns, LogPlugin);
 const ThemePlugin = definePlugin<{ dark: boolean }>({
   id: 'theme',
   install(ns, opts) {
-    set(ns, 'theme', opts.dark ? 'dark' : 'light');
+    provide(ns, 'theme', opts.dark ? 'dark' : 'light');
   },
 });
 usePlugin(app.ns, ThemePlugin, { dark: true });
@@ -73,7 +73,7 @@ if (installed(app.ns, LogPlugin)) {
 
 // Also works with id string
 if (installed(app.ns, 'log')) {
-  const logger = get(app.ns, 'logger');
+  const logger = inject(app.ns, 'logger');
   logger.info('Hello');
 }`,
       },

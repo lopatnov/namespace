@@ -1,4 +1,4 @@
-import { n as navigate, r as get, t as app } from "./app.js";
+import { n as navigate, r as inject, t as app } from "./app.js";
 import { t as componentMethods } from "./component-methods-BreH3D09.js";
 
 //#region src/pages/component-overview.html
@@ -7,7 +7,7 @@ var component_overview_default = "<div class=\"py-4\">\r\n  <h1 class=\"mb-1\">C
 //#endregion
 //#region src/pages/component-overview.ts
 function componentOverview(container) {
-	const router = get(app, "router");
+	const router = inject(app, "router");
 	container.innerHTML = component_overview_default;
 	const cards = componentMethods.map((g) => `
     <div class="col-md-6">

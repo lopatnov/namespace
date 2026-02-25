@@ -19,7 +19,7 @@ const stop = persist(app.ns, {
 });
 
 // Automatically saved on every change:
-set(app.ns, 'user.name', 'Alice');
+provide(app.ns, 'user.name', 'Alice');
 
 // Stop persisting:
 stop();`,

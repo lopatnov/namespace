@@ -28,27 +28,27 @@ const app = createNamespace();`,
     ],
   },
   {
-    slug: "set",
-    title: "set / get",
+    slug: "provide",
+    title: "provide / inject",
     methods: [
       {
-        name: "set",
-        signature: "set<T>(ns: Namespace, key: string, value: T): void",
+        name: "provide",
+        signature: "provide<T>(ns: Namespace, key: string, value: T): void",
         description:
           "Register a value under a key. Supports dot-paths like `'a.b.c'` — intermediate child namespaces are created automatically. Emits a `change` event that bubbles up to root.",
-        example: `set(app, 'config.apiUrl', '/api/v1');
-set(app, 'config.debug', true);
-set(app, 'greeting', 'Hello');`,
+        example: `provide(app, 'config.apiUrl', '/api/v1');
+provide(app, 'config.debug', true);
+provide(app, 'greeting', 'Hello');`,
       },
       {
-        name: "get",
-        signature: "get<T>(ns: Namespace, key: string): T | undefined",
+        name: "inject",
+        signature: "inject<T>(ns: Namespace, key: string): T | undefined",
         description:
           "Retrieve a value by key. Supports dot-paths to reach into child namespaces. Returns `undefined` if the key does not exist. Works correctly with falsy values (0, '', false, null).",
-        example: `const url = get<string>(app, 'config.apiUrl');
+        example: `const url = inject<string>(app, 'config.apiUrl');
 // '/api/v1'
 
-const missing = get(app, 'nonexistent');
+const missing = inject(app, 'nonexistent');
 // undefined`,
       },
     ],
@@ -129,10 +129,10 @@ off(app, 'custom', handler);`,
         description:
           "Get or create a child namespace. Supports dot-paths — intermediate levels are created automatically. Child namespaces share the event bus (events bubble up to root).",
         example: `const auth = scope(app, 'auth');
-set(auth, 'token', 'abc123');
+provide(auth, 'token', 'abc123');
 
 // Same as:
-set(app, 'auth.token', 'abc123');`,
+provide(app, 'auth.token', 'abc123');`,
       },
       {
         name: "root",
@@ -174,7 +174,7 @@ path(auth);  // 'auth'`,
         signature: "fromJSON(data: Record<string, unknown>): Namespace",
         description: "Restore a namespace tree from a plain object.",
         example: `const restored = fromJSON({ config: { debug: true } });
-get(restored, 'config.debug');  // true`,
+inject(restored, 'config.debug');  // true`,
       },
       {
         name: "clone",
@@ -191,7 +191,7 @@ get(restored, 'config.debug');  // true`,
 
 // Also accepts another namespace:
 const other = createNamespace();
-set(other, 'theme', 'dark');
+provide(other, 'theme', 'dark');
 extend(app, other);`,
       },
     ],
@@ -209,7 +209,7 @@ extend(app, other);`,
 
 const app = createApp();
 
-// Fluent API — set, events, plugins, scoping
+// Fluent API — provide/inject, events, plugins, scoping
 app
   .use('api.url', '/api/v1')
   .use('debug', true)

@@ -1,4 +1,4 @@
-import { n as navigate, r as get, t as app } from "./app.js";
+import { n as navigate, r as inject, t as app } from "./app.js";
 import { t as microfrontendsMethods } from "./microfrontends-methods-VpbzjpZ2.js";
 
 //#region src/pages/microfrontends-overview.html
@@ -7,7 +7,7 @@ var microfrontends_overview_default = "<div class=\"py-4\">\r\n  <h1 class=\"mb-
 //#endregion
 //#region src/pages/microfrontends-overview.ts
 function microfrontendsOverview(container) {
-	const router = get(app, "router");
+	const router = inject(app, "router");
 	container.innerHTML = microfrontends_overview_default;
 	const cards = microfrontendsMethods.map((g) => `
     <div class="col-md-6">

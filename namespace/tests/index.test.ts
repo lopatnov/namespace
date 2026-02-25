@@ -9,17 +9,17 @@ import {
   entries,
   extend,
   fromJSON,
-  get,
   has,
+  inject,
   keys,
   off,
   on,
   parent,
   path,
+  provide,
   remove,
   root,
   scope,
-  set,
   toJSON,
 } from "../src/index";
 
@@ -30,24 +30,24 @@ describe("createNamespace", () => {
   });
 });
 
-describe("set / get", () => {
+describe("provide / inject", () => {
   it("stores and retrieves a value", () => {
     const ns = createNamespace();
-    set(ns, "name", "Alice");
-    expect(get(ns, "name")).toBe("Alice");
+    provide(ns, "name", "Alice");
+    expect(inject(ns, "name")).toBe("Alice");
   });
 
   it("handles falsy values correctly (0, empty string, false, null)", () => {
     const ns = createNamespace();
-    set(ns, "zero", 0);
-    set(ns, "empty", "");
-    set(ns, "no", false);
-    set(ns, "nil", null);
+    provide(ns, "zero", 0);
+    provide(ns, "empty", "");
+    provide(ns, "no", false);
+    provide(ns, "nil", null);
 
-    expect(get(ns, "zero")).toBe(0);
-    expect(get(ns, "empty")).toBe("");
-    expect(get(ns, "no")).toBe(false);
-    expect(get(ns, "nil")).toBe(null);
+    expect(inject(ns, "zero")).toBe(0);
+    expect(inject(ns, "empty")).toBe("");
+    expect(inject(ns, "no")).toBe(false);
+    expect(inject(ns, "nil")).toBe(null);
 
     expect(has(ns, "zero")).toBe(true);
     expect(has(ns, "empty")).toBe(true);
@@ -57,47 +57,47 @@ describe("set / get", () => {
 
   it("returns undefined for non-existent key", () => {
     const ns = createNamespace();
-    expect(get(ns, "nope")).toBeUndefined();
+    expect(inject(ns, "nope")).toBeUndefined();
   });
 
   it("overwrites existing value", () => {
     const ns = createNamespace();
-    set(ns, "x", 1);
-    set(ns, "x", 2);
-    expect(get(ns, "x")).toBe(2);
+    provide(ns, "x", 1);
+    provide(ns, "x", 2);
+    expect(inject(ns, "x")).toBe(2);
   });
 
-  it("supports dot-path for deep set/get", () => {
+  it("supports dot-path for deep provide/inject", () => {
     const ns = createNamespace();
-    set(ns, "config.db.host", "localhost");
-    set(ns, "config.db.port", 5432);
+    provide(ns, "config.db.host", "localhost");
+    provide(ns, "config.db.port", 5432);
 
-    expect(get(ns, "config.db.host")).toBe("localhost");
-    expect(get(ns, "config.db.port")).toBe(5432);
+    expect(inject(ns, "config.db.host")).toBe("localhost");
+    expect(inject(ns, "config.db.port")).toBe(5432);
   });
 
   it("stores functions", () => {
     const ns = createNamespace();
     const fn = (x: number) => x * 2;
-    set(ns, "double", fn);
-    const result = get<(x: number) => number>(ns, "double");
+    provide(ns, "double", fn);
+    const result = inject<(x: number) => number>(ns, "double");
     expect(result!(3)).toBe(6);
   });
 
   it("stores objects and arrays", () => {
     const ns = createNamespace();
-    set(ns, "list", [1, 2, 3]);
-    set(ns, "obj", { a: 1 });
+    provide(ns, "list", [1, 2, 3]);
+    provide(ns, "obj", { a: 1 });
 
-    expect(get(ns, "list")).toEqual([1, 2, 3]);
-    expect(get(ns, "obj")).toEqual({ a: 1 });
+    expect(inject(ns, "list")).toEqual([1, 2, 3]);
+    expect(inject(ns, "obj")).toEqual({ a: 1 });
   });
 });
 
 describe("has", () => {
   it("returns true for existing key", () => {
     const ns = createNamespace();
-    set(ns, "x", 42);
+    provide(ns, "x", 42);
     expect(has(ns, "x")).toBe(true);
   });
 
@@ -108,7 +108,7 @@ describe("has", () => {
 
   it("works with dot-paths", () => {
     const ns = createNamespace();
-    set(ns, "a.b.c", 1);
+    provide(ns, "a.b.c", 1);
     expect(has(ns, "a.b.c")).toBe(true);
     expect(has(ns, "a.b")).toBe(true);
     expect(has(ns, "a.b.d")).toBe(false);
@@ -119,10 +119,10 @@ describe("has", () => {
 describe("remove", () => {
   it("removes a key", () => {
     const ns = createNamespace();
-    set(ns, "x", 42);
+    provide(ns, "x", 42);
     expect(remove(ns, "x")).toBe(true);
     expect(has(ns, "x")).toBe(false);
-    expect(get(ns, "x")).toBeUndefined();
+    expect(inject(ns, "x")).toBeUndefined();
   });
 
   it("returns false for non-existent key", () => {
@@ -132,7 +132,7 @@ describe("remove", () => {
 
   it("removes deep paths", () => {
     const ns = createNamespace();
-    set(ns, "a.b.c", 1);
+    provide(ns, "a.b.c", 1);
     expect(remove(ns, "a.b.c")).toBe(true);
     expect(has(ns, "a.b.c")).toBe(false);
     expect(has(ns, "a.b")).toBe(true); // parent remains
@@ -142,16 +142,16 @@ describe("remove", () => {
 describe("keys / entries", () => {
   it("lists immediate child keys", () => {
     const ns = createNamespace();
-    set(ns, "a", 1);
-    set(ns, "b", 2);
-    set(ns, "c.d", 3);
+    provide(ns, "a", 1);
+    provide(ns, "b", 2);
+    provide(ns, "c.d", 3);
     expect(keys(ns).sort()).toEqual(["a", "b", "c"]);
   });
 
   it("returns entries", () => {
     const ns = createNamespace();
-    set(ns, "x", 10);
-    set(ns, "y", 20);
+    provide(ns, "x", 10);
+    provide(ns, "y", 20);
     const result = entries(ns).filter(([k]) => k === "x" || k === "y");
     expect(result).toEqual([
       ["x", 10],
@@ -164,9 +164,9 @@ describe("scope", () => {
   it("creates a child namespace", () => {
     const ns = createNamespace();
     const auth = scope(ns, "auth");
-    set(auth, "user", "Admin");
+    provide(auth, "user", "Admin");
 
-    expect(get(ns, "auth.user")).toBe("Admin");
+    expect(inject(ns, "auth.user")).toBe("Admin");
   });
 
   it("returns existing scope", () => {
@@ -179,9 +179,9 @@ describe("scope", () => {
   it("creates deep scopes", () => {
     const ns = createNamespace();
     const db = scope(ns, "config.db");
-    set(db, "host", "localhost");
+    provide(db, "host", "localhost");
 
-    expect(get(ns, "config.db.host")).toBe("localhost");
+    expect(inject(ns, "config.db.host")).toBe("localhost");
   });
 });
 
@@ -261,15 +261,15 @@ describe("events: on / off / emit", () => {
     expect(() => emit(ns, "nonexistent")).not.toThrow();
   });
 
-  it("set emits 'change' event", () => {
+  it("provide emits 'change' event", () => {
     const ns = createNamespace();
     const handler = vi.fn();
     on(ns, "change", handler);
 
-    set(ns, "x", 42);
+    provide(ns, "x", 42);
     expect(handler).toHaveBeenCalledWith("x", 42, undefined);
 
-    set(ns, "x", 100);
+    provide(ns, "x", 100);
     expect(handler).toHaveBeenCalledWith("x", 100, 42);
   });
 
@@ -278,7 +278,7 @@ describe("events: on / off / emit", () => {
     const rootHandler = vi.fn();
     on(ns, "change", rootHandler);
 
-    set(ns, "auth.user", "Admin");
+    provide(ns, "auth.user", "Admin");
     expect(rootHandler).toHaveBeenCalledWith("auth.user", "Admin", undefined);
   });
 
@@ -287,7 +287,7 @@ describe("events: on / off / emit", () => {
     const handler = vi.fn();
     on(ns, "delete", handler);
 
-    set(ns, "x", 42);
+    provide(ns, "x", 42);
     remove(ns, "x");
     expect(handler).toHaveBeenCalledWith("x");
   });
@@ -296,9 +296,9 @@ describe("events: on / off / emit", () => {
 describe("toJSON / fromJSON / clone", () => {
   it("serializes namespace to plain object", () => {
     const ns = createNamespace();
-    set(ns, "name", "App");
-    set(ns, "config.db.host", "localhost");
-    set(ns, "config.db.port", 5432);
+    provide(ns, "name", "App");
+    provide(ns, "config.db.host", "localhost");
+    provide(ns, "config.db.port", 5432);
 
     const json = toJSON(ns);
     expect(json).toEqual({
@@ -314,8 +314,8 @@ describe("toJSON / fromJSON / clone", () => {
 
   it("skips functions during serialization", () => {
     const ns = createNamespace();
-    set(ns, "name", "App");
-    set(ns, "fn", () => 42);
+    provide(ns, "name", "App");
+    provide(ns, "fn", () => 42);
 
     const json = toJSON(ns);
     expect(json).toEqual({ name: "App" });
@@ -328,85 +328,85 @@ describe("toJSON / fromJSON / clone", () => {
     };
     const ns = fromJSON(data);
 
-    expect(get(ns, "name")).toBe("App");
-    expect(get(ns, "config.db.host")).toBe("localhost");
-    expect(get(ns, "config.db.port")).toBe(5432);
+    expect(inject(ns, "name")).toBe("App");
+    expect(inject(ns, "config.db.host")).toBe("localhost");
+    expect(inject(ns, "config.db.port")).toBe(5432);
   });
 
   it("clone creates independent copy", () => {
     const ns = createNamespace();
-    set(ns, "x", 1);
-    set(ns, "a.b", 2);
+    provide(ns, "x", 1);
+    provide(ns, "a.b", 2);
 
     const copy = clone(ns);
-    set(copy, "x", 999);
+    provide(copy, "x", 999);
 
-    expect(get(ns, "x")).toBe(1); // original unchanged
-    expect(get(copy, "x")).toBe(999);
+    expect(inject(ns, "x")).toBe(1); // original unchanged
+    expect(inject(copy, "x")).toBe(999);
   });
 });
 
 describe("extend", () => {
   it("merges plain object into namespace", () => {
     const ns = createNamespace();
-    set(ns, "x", 1);
+    provide(ns, "x", 1);
 
     extend(ns, { y: 2, nested: { a: 3 } });
 
-    expect(get(ns, "x")).toBe(1);
-    expect(get(ns, "y")).toBe(2);
-    expect(get(ns, "nested.a")).toBe(3);
+    expect(inject(ns, "x")).toBe(1);
+    expect(inject(ns, "y")).toBe(2);
+    expect(inject(ns, "nested.a")).toBe(3);
   });
 
   it("merges another namespace", () => {
     const ns1 = createNamespace();
-    set(ns1, "a", 1);
-    set(ns1, "b.c", 2);
+    provide(ns1, "a", 1);
+    provide(ns1, "b.c", 2);
 
     const ns2 = createNamespace();
-    set(ns2, "d", 3);
+    provide(ns2, "d", 3);
     extend(ns2, ns1);
 
-    expect(get(ns2, "a")).toBe(1);
-    expect(get(ns2, "b.c")).toBe(2);
-    expect(get(ns2, "d")).toBe(3);
+    expect(inject(ns2, "a")).toBe(1);
+    expect(inject(ns2, "b.c")).toBe(2);
+    expect(inject(ns2, "d")).toBe(3);
   });
 
   it("preserves functions (unlike toJSON)", () => {
     const ns = createNamespace();
     const fn = () => 42;
-    set(ns, "fn", fn);
+    provide(ns, "fn", fn);
 
     const ns2 = createNamespace();
     extend(ns2, ns);
 
-    expect(get(ns2, "fn")).toBe(fn);
+    expect(inject(ns2, "fn")).toBe(fn);
   });
 });
 
 describe("edge cases", () => {
   it("throws on empty path", () => {
     const ns = createNamespace();
-    expect(() => set(ns, "", 1)).toThrow();
+    expect(() => provide(ns, "", 1)).toThrow();
   });
 
   it("throws on path with double dots", () => {
     const ns = createNamespace();
-    expect(() => set(ns, "a..b", 1)).toThrow();
+    expect(() => provide(ns, "a..b", 1)).toThrow();
   });
 
   it("handles many nested levels", () => {
     const ns = createNamespace();
-    set(ns, "a.b.c.d.e.f.g", "deep");
-    expect(get(ns, "a.b.c.d.e.f.g")).toBe("deep");
+    provide(ns, "a.b.c.d.e.f.g", "deep");
+    expect(inject(ns, "a.b.c.d.e.f.g")).toBe("deep");
   });
 
-  it("set overwrites non-namespace with namespace (scope re-creation)", () => {
+  it("provide overwrites non-namespace with namespace (scope re-creation)", () => {
     const ns = createNamespace();
-    set(ns, "x", 42);
+    provide(ns, "x", 42);
     // Now set a deep path through x — x becomes a namespace
-    set(ns, "x.y", 1);
-    expect(get(ns, "x.y")).toBe(1);
+    provide(ns, "x.y", 1);
+    expect(inject(ns, "x.y")).toBe(1);
   });
 });
 
@@ -414,7 +414,7 @@ describe("edge cases", () => {
 // createApp / App tests
 // ============================================================
 
-describe("createApp / App.use (set/get)", () => {
+describe("createApp / App.use (provide/inject)", () => {
   it("sets and gets a value via use()", () => {
     const app = createApp();
     app.use("name", "Alice");
@@ -556,7 +556,7 @@ describe("App plugins", () => {
     const plugin: NamespacePlugin<void> = {
       id: "test-plugin",
       install(ns: Namespace) {
-        set(ns, "pluginValue", 42);
+        provide(ns, "pluginValue", 42);
       },
     };
 
@@ -572,7 +572,7 @@ describe("App plugins", () => {
     const plugin: NamespacePlugin<{ prefix: string }> = {
       id: "prefix-plugin",
       install(ns: Namespace, opts: { prefix: string }) {
-        set(ns, "prefix", opts.prefix);
+        provide(ns, "prefix", opts.prefix);
       },
     };
 
@@ -633,12 +633,12 @@ describe("App.ns — namespace interop", () => {
   it("ns is the underlying Namespace", () => {
     const app = createApp();
     app.use("x", 1);
-    expect(get(app.ns, "x")).toBe(1);
+    expect(inject(app.ns, "x")).toBe(1);
   });
 
   it("changes via pure functions are visible through App", () => {
     const app = createApp();
-    set(app.ns, "y", 2);
+    provide(app.ns, "y", 2);
     expect(app.use("y")).toBe(2);
   });
 });

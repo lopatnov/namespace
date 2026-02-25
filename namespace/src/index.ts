@@ -17,7 +17,7 @@ interface NsMeta {
 
 const _ns = new WeakMap<Namespace, NsMeta>();
 
-// Sentinel distinguishing App.use(key) [get] from App.use(key, value) [set]
+// Sentinel distinguishing App.use(key) [inject] from App.use(key, value) [provide]
 const _UNSET = Symbol("unset");
 
 // --- Public types ---
@@ -54,8 +54,8 @@ export function createNamespace(): Namespace {
 
 // --- Service registry ---
 
-/** Register a value under a key. Supports dot-paths: `set(ns, 'a.b.c', value)`. */
-export function set<T>(ns: Namespace, key: string, value: T): void {
+/** Register a value under a key. Supports dot-paths: `provide(ns, 'a.b.c', value)`. */
+export function provide<T>(ns: Namespace, key: string, value: T): void {
   const parts = parsePath(key);
   const meta = getMeta(ns);
 
@@ -80,7 +80,7 @@ export function set<T>(ns: Namespace, key: string, value: T): void {
 }
 
 /** Retrieve a value by key. Returns `undefined` if not found. */
-export function get<T = unknown>(ns: Namespace, key: string): T | undefined {
+export function inject<T = unknown>(ns: Namespace, key: string): T | undefined {
   const parts = parsePath(key);
   let current: Namespace = ns;
 
@@ -219,7 +219,7 @@ export function extend(ns: Namespace, source: Record<string, unknown> | Namespac
       if (isNamespace(v)) {
         extend(ensureChild(ns, k), v);
       } else {
-        set(ns, k, v);
+        provide(ns, k, v);
       }
     }
   } else {
@@ -227,7 +227,7 @@ export function extend(ns: Namespace, source: Record<string, unknown> | Namespac
       if (v !== null && typeof v === "object" && !Array.isArray(v)) {
         extend(ensureChild(ns, k), v as Record<string, unknown>);
       } else {
-        set(ns, k, v);
+        provide(ns, k, v);
       }
     }
   }
@@ -312,10 +312,10 @@ export class App {
   use(keyOrPlugin: string | NamespacePlugin<any>, value: unknown = _UNSET): unknown {
     if (typeof keyOrPlugin === "string") {
       if (value !== _UNSET) {
-        set(this.ns, keyOrPlugin, value);
+        provide(this.ns, keyOrPlugin, value);
         return this;
       }
-      return get(this.ns, keyOrPlugin);
+      return inject(this.ns, keyOrPlugin);
     }
     // Plugin — idempotent install
     if (!this.#plugins.has(keyOrPlugin.id)) {

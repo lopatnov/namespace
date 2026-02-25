@@ -25,7 +25,7 @@ function persist(ns, options) {
 		if (!rootKey) return;
 		const storageKey = `${prefix}${rootKey}`;
 		const doSave = () => {
-			const value = (0, _lopatnov_namespace.get)(ns, rootKey);
+			const value = (0, _lopatnov_namespace.inject)(ns, rootKey);
 			if (value === void 0) storage.removeItem(storageKey);
 			else {
 				let serialized;
@@ -70,7 +70,7 @@ async function restore(ns, options) {
 		try {
 			const parsed = JSON.parse(raw);
 			if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) (0, _lopatnov_namespace.extend)((0, _lopatnov_namespace.scope)(ns, key), parsed);
-			else (0, _lopatnov_namespace.set)(ns, key, parsed);
+			else (0, _lopatnov_namespace.provide)(ns, key, parsed);
 		} catch {}
 	}
 }

@@ -14,8 +14,8 @@ function createNamespace() {
 	});
 	return ns;
 }
-/** Register a value under a key. Supports dot-paths: `set(ns, 'a.b.c', value)`. */
-function set(ns, key, value) {
+/** Register a value under a key. Supports dot-paths: `provide(ns, 'a.b.c', value)`. */
+function provide(ns, key, value) {
 	const parts = parsePath(key);
 	const meta = getMeta(ns);
 	if (parts.length === 1) {
@@ -34,7 +34,7 @@ function set(ns, key, value) {
 	emitUp(current, "change", fullPath, value, old);
 }
 /** Retrieve a value by key. Returns `undefined` if not found. */
-function get(ns, key) {
+function inject(ns, key) {
 	const parts = parsePath(key);
 	let current = ns;
 	for (let i = 0; i < parts.length - 1; i++) {
@@ -136,9 +136,9 @@ function emit(ns, event, ...args) {
 */
 function extend(ns, source) {
 	if (isNamespace(source)) for (const [k, v] of getMeta(source).store) if (isNamespace(v)) extend(ensureChild(ns, k), v);
-	else set(ns, k, v);
+	else provide(ns, k, v);
 	else for (const [k, v] of Object.entries(source)) if (v !== null && typeof v === "object" && !Array.isArray(v)) extend(ensureChild(ns, k), v);
-	else set(ns, k, v);
+	else provide(ns, k, v);
 }
 /** Serialize namespace tree to a plain object. Functions are skipped. */
 function toJSON(ns) {
@@ -173,10 +173,10 @@ var App = class App {
 	use(keyOrPlugin, value = _UNSET) {
 		if (typeof keyOrPlugin === "string") {
 			if (value !== _UNSET) {
-				set(this.ns, keyOrPlugin, value);
+				provide(this.ns, keyOrPlugin, value);
 				return this;
 			}
-			return get(this.ns, keyOrPlugin);
+			return inject(this.ns, keyOrPlugin);
 		}
 		if (!this.#plugins.has(keyOrPlugin.id)) {
 			keyOrPlugin.install(this.ns, value === _UNSET ? void 0 : value);
@@ -309,15 +309,15 @@ exports.emit = emit;
 exports.entries = entries;
 exports.extend = extend;
 exports.fromJSON = fromJSON;
-exports.get = get;
 exports.has = has;
+exports.inject = inject;
 exports.keys = keys;
 exports.off = off;
 exports.on = on;
 exports.parent = parent;
 exports.path = path;
+exports.provide = provide;
 exports.remove = remove;
 exports.root = root;
 exports.scope = scope;
-exports.set = set;
 exports.toJSON = toJSON;

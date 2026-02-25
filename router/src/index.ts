@@ -4,7 +4,7 @@
 // ============================================================
 
 import type { Namespace } from "@lopatnov/namespace";
-import { emit, set } from "@lopatnov/namespace";
+import { emit, provide } from "@lopatnov/namespace";
 
 // --- Types ---
 
@@ -59,7 +59,7 @@ export function createRouter(ns: Namespace, options: RouterOptions = {}): Router
   };
 
   // Register in namespace
-  set(ns, "router", router);
+  provide(ns, "router", router);
 
   return router;
 }

@@ -1,4 +1,4 @@
-import { extend, get, on, scope, set, toJSON } from "@lopatnov/namespace";
+import { extend, inject, on, provide, scope, toJSON } from "@lopatnov/namespace";
 
 //#region src/index.ts
 /**
@@ -24,7 +24,7 @@ function persist(ns, options) {
 		if (!rootKey) return;
 		const storageKey = `${prefix}${rootKey}`;
 		const doSave = () => {
-			const value = get(ns, rootKey);
+			const value = inject(ns, rootKey);
 			if (value === void 0) storage.removeItem(storageKey);
 			else {
 				let serialized;
@@ -69,7 +69,7 @@ async function restore(ns, options) {
 		try {
 			const parsed = JSON.parse(raw);
 			if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) extend(scope(ns, key), parsed);
-			else set(ns, key, parsed);
+			else provide(ns, key, parsed);
 		} catch {}
 	}
 }

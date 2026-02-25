@@ -1,5 +1,5 @@
 import type { Namespace, NamespacePlugin } from "@lopatnov/namespace";
-import { createNamespace, get, on, set } from "@lopatnov/namespace";
+import { createNamespace, inject, on, provide } from "@lopatnov/namespace";
 import { describe, expect, it, vi } from "vitest";
 import { definePlugin, installed, uninstallPlugin, usePlugin } from "../src/index";
 
@@ -13,12 +13,12 @@ describe("definePlugin", () => {
     const plugin = definePlugin({
       id: "typed",
       install(ns: Namespace, opts: { url: string }) {
-        set(ns, "url", opts.url);
+        provide(ns, "url", opts.url);
       },
     });
     const ns = createNamespace();
     usePlugin(ns, plugin, { url: "https://example.com" });
-    expect(get(ns, "url")).toBe("https://example.com");
+    expect(inject(ns, "url")).toBe("https://example.com");
   });
 });
 
@@ -36,13 +36,13 @@ describe("usePlugin", () => {
     const plugin = definePlugin({
       id: "opts-plugin",
       install(ns: Namespace, opts: { key: string; value: number }) {
-        set(ns, opts.key, opts.value);
+        provide(ns, opts.key, opts.value);
       },
     });
 
     const ns = createNamespace();
     usePlugin(ns, plugin, { key: "answer", value: 42 });
-    expect(get(ns, "answer")).toBe(42);
+    expect(inject(ns, "answer")).toBe(42);
   });
 
   it("is idempotent — install called only once", () => {

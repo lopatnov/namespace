@@ -1,4 +1,4 @@
-import { createNamespace, get, set } from "@lopatnov/namespace";
+import { createNamespace, inject, provide } from "@lopatnov/namespace";
 import { describe, expect, it, vi } from "vitest";
 import type { StorageAdapter } from "../src/index";
 import { createIndexedDB, persist, restore } from "../src/index";
@@ -28,7 +28,7 @@ describe("persist", () => {
 
     persist(ns, { keys: ["user"], storage });
 
-    set(ns, "user", { name: "Alice" });
+    provide(ns, "user", { name: "Alice" });
 
     await vi.waitFor(() => {
       expect(storage.store.has("ns:user")).toBe(true);
@@ -44,7 +44,7 @@ describe("persist", () => {
 
     persist(ns, { keys: ["config"], storage });
 
-    set(ns, "config.apiUrl", "/api/v2");
+    provide(ns, "config.apiUrl", "/api/v2");
 
     await vi.waitFor(() => {
       expect(storage.store.has("ns:config")).toBe(true);
@@ -58,10 +58,10 @@ describe("persist", () => {
     const ns = createNamespace();
     const storage = makeMemoryStorage();
 
-    set(ns, "user", "Alice");
+    provide(ns, "user", "Alice");
     persist(ns, { keys: ["user"], storage });
 
-    set(ns, "user", "Alice");
+    provide(ns, "user", "Alice");
     await vi.waitFor(() => expect(storage.store.has("ns:user")).toBe(true));
 
     // Simulate deletion by setting undefined — actually remove
@@ -79,7 +79,7 @@ describe("persist", () => {
 
     persist(ns, { keys: ["x"], storage, prefix: "app:" });
 
-    set(ns, "x", 42);
+    provide(ns, "x", 42);
 
     await vi.waitFor(() => {
       expect(storage.store.has("app:x")).toBe(true);
@@ -91,7 +91,7 @@ describe("persist", () => {
     const storage = makeMemoryStorage();
 
     persist(ns, { keys: ["a"], storage });
-    set(ns, "b", "ignored");
+    provide(ns, "b", "ignored");
 
     // Wait a bit to ensure no spurious saves
     await new Promise((r) => setTimeout(r, 10));
@@ -105,7 +105,7 @@ describe("persist", () => {
     const stop = persist(ns, { keys: ["x"], storage });
     stop();
 
-    set(ns, "x", "after-stop");
+    provide(ns, "x", "after-stop");
     await new Promise((r) => setTimeout(r, 10));
 
     expect(storage.store.size).toBe(0);
@@ -118,9 +118,9 @@ describe("persist", () => {
 
     persist(ns, { keys: ["x"], storage, debounce: 50 });
 
-    set(ns, "x", 1);
-    set(ns, "x", 2);
-    set(ns, "x", 3);
+    provide(ns, "x", 1);
+    provide(ns, "x", 2);
+    provide(ns, "x", 3);
 
     await new Promise((r) => setTimeout(r, 100));
 
@@ -140,7 +140,7 @@ describe("restore", () => {
 
     await restore(ns, { keys: ["name"], storage });
 
-    expect(get(ns, "name")).toBe("Alice");
+    expect(inject(ns, "name")).toBe("Alice");
   });
 
   it("restores a nested object as namespace keys", async () => {
@@ -150,8 +150,8 @@ describe("restore", () => {
 
     await restore(ns, { keys: ["config"], storage });
 
-    expect(get(ns, "config.apiUrl")).toBe("/api/v1");
-    expect(get(ns, "config.debug")).toBe(true);
+    expect(inject(ns, "config.apiUrl")).toBe("/api/v1");
+    expect(inject(ns, "config.debug")).toBe(true);
   });
 
   it("ignores missing keys", async () => {
@@ -160,7 +160,7 @@ describe("restore", () => {
 
     // Should not throw
     await restore(ns, { keys: ["missing"], storage });
-    expect(get(ns, "missing")).toBeUndefined();
+    expect(inject(ns, "missing")).toBeUndefined();
   });
 
   it("uses custom prefix", async () => {
@@ -170,7 +170,7 @@ describe("restore", () => {
 
     await restore(ns, { keys: ["x"], storage, prefix: "app:" });
 
-    expect(get(ns, "x")).toBe(99);
+    expect(inject(ns, "x")).toBe(99);
   });
 
   it("ignores corrupted JSON", async () => {
@@ -179,7 +179,7 @@ describe("restore", () => {
     storage.store.set("ns:bad", "not-json{{");
 
     await expect(restore(ns, { keys: ["bad"], storage })).resolves.toBeUndefined();
-    expect(get(ns, "bad")).toBeUndefined();
+    expect(inject(ns, "bad")).toBeUndefined();
   });
 });
 

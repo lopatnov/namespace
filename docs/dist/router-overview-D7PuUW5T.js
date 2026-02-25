@@ -1,4 +1,4 @@
-import { n as navigate, r as get, t as app } from "./app.js";
+import { n as navigate, r as inject, t as app } from "./app.js";
 import { t as routerMethods } from "./router-methods-CqQlr3Cg.js";
 
 //#region src/pages/router-overview.html
@@ -7,7 +7,7 @@ var router_overview_default = "<div class=\"py-4\">\r\n  <h1 class=\"mb-1\">Rout
 //#endregion
 //#region src/pages/router-overview.ts
 function routerOverview(container) {
-	const router = get(app, "router");
+	const router = inject(app, "router");
 	container.innerHTML = router_overview_default;
 	const cards = routerMethods.map((g) => `
     <div class="col-md-6">

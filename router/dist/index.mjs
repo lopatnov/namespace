@@ -1,4 +1,4 @@
-import { emit, set } from "@lopatnov/namespace";
+import { emit, provide } from "@lopatnov/namespace";
 
 //#region src/index.ts
 /** Create a router and register it in the namespace. */
@@ -13,7 +13,7 @@ function createRouter(ns, options = {}) {
 		currentPath: "",
 		unlisten: null
 	};
-	set(ns, "router", router);
+	provide(ns, "router", router);
 	return router;
 }
 /** Start the router — listen to URL changes and handle the current URL. */

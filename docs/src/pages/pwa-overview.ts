@@ -1,11 +1,11 @@
-import { get } from "../../../namespace/src/index.ts";
+import { inject } from "../../../namespace/src/index.ts";
 import { navigate } from "../../../router/src/index.ts";
 import { pwaMethods } from "../data/pwa-methods.ts";
 import { app } from "../ns.ts";
 import template from "./pwa-overview.html";
 
 export default function pwaOverview(container: Element) {
-  const router = get(app, "router") as any;
+  const router = inject(app, "router") as any;
   container.innerHTML = template;
 
   const cards = pwaMethods

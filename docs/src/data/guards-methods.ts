@@ -14,7 +14,7 @@ export const guardsMethods: MethodGroup[] = [
 
 // Redirect unauthenticated users to /login
 guard(router, '/admin/*', () => {
-  return get(app.ns, 'user.isAdmin') ? true : '/login';
+  return inject(app.ns, 'user.isAdmin') ? true : '/login';
 });
 
 // Block navigation entirely
@@ -38,10 +38,10 @@ unsub();`,
         example: `import { protect } from '@lopatnov/namespace-guards';
 
 // Only allow access to 'payment' service if user is logged in
-protect(app.ns, 'payment', () => !!get(app.ns, 'user'));
+protect(app.ns, 'payment', () => !!inject(app.ns, 'user'));
 
 // Additional check — must have a verified account
-protect(app.ns, 'payment', () => !!get(app.ns, 'user.verified'));
+protect(app.ns, 'payment', () => !!inject(app.ns, 'user.verified'));
 
 // Remove protection
 const unsub = protect(app.ns, 'resource', () => true);
@@ -55,7 +55,7 @@ unsub();`,
         example: `import { allowed } from '@lopatnov/namespace-guards';
 
 if (allowed(app.ns, 'payment')) {
-  const payment = get(app.ns, 'payment');
+  const payment = inject(app.ns, 'payment');
   // use payment service
 } else {
   navigate(router, '/login');

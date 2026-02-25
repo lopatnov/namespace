@@ -1,4 +1,4 @@
-import { n as navigate, r as get, t as app } from "./app.js";
+import { n as navigate, r as inject, t as app } from "./app.js";
 import { t as pwaMethods } from "./pwa-methods-CEpqZieM.js";
 
 //#region src/pages/pwa-overview.html
@@ -7,7 +7,7 @@ var pwa_overview_default = "<div class=\"py-4\">\r\n  <h1 class=\"mb-1\">PWA</h1
 //#endregion
 //#region src/pages/pwa-overview.ts
 function pwaOverview(container) {
-	const router = get(app, "router");
+	const router = inject(app, "router");
 	container.innerHTML = pwa_overview_default;
 	const cards = pwaMethods.map((g) => `
     <div class="col-md-6">

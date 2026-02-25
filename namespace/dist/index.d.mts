@@ -16,10 +16,10 @@ interface NamespacePlugin<TOptions = void> {
 }
 /** Create a new root namespace. */
 declare function createNamespace(): Namespace;
-/** Register a value under a key. Supports dot-paths: `set(ns, 'a.b.c', value)`. */
-declare function set<T>(ns: Namespace, key: string, value: T): void;
+/** Register a value under a key. Supports dot-paths: `provide(ns, 'a.b.c', value)`. */
+declare function provide<T>(ns: Namespace, key: string, value: T): void;
 /** Retrieve a value by key. Returns `undefined` if not found. */
-declare function get<T = unknown>(ns: Namespace, key: string): T | undefined;
+declare function inject<T = unknown>(ns: Namespace, key: string): T | undefined;
 /** Check if a key exists. Supports dot-paths. */
 declare function has(ns: Namespace, key: string): boolean;
 /** Remove a key and its subtree. Returns `true` if the key existed. */
@@ -99,4 +99,4 @@ declare class App {
  */
 declare function createApp(): App;
 //#endregion
-export { App, EventHandler, Namespace, NamespacePlugin, clone, createApp, createNamespace, emit, entries, extend, fromJSON, get, has, keys, off, on, parent, path, remove, root, scope, set, toJSON };
+export { App, EventHandler, Namespace, NamespacePlugin, clone, createApp, createNamespace, emit, entries, extend, fromJSON, has, inject, keys, off, on, parent, path, provide, remove, root, scope, toJSON };

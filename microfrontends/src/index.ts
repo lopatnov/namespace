@@ -86,13 +86,37 @@ export function createBus(channelName: string): Bus {
 
 const _HEARTBEAT_INTERVAL = 200; // ms
 const _HEARTBEAT_TIMEOUT = 600; // ms — if no heartbeat seen, take over
+const _VISIBILITY_DELAY = 500; // ms — delay before claiming leadership when tab becomes visible
+
+/** Heartbeat record stored in localStorage. */
+interface Heartbeat {
+  ts: number;
+  visible: boolean;
+}
+
+function parseHeartbeat(raw: string | null): Heartbeat | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    // Backward compat: old format was a plain timestamp number
+    if (typeof parsed === "number") return { ts: parsed, visible: false };
+    return parsed as Heartbeat;
+  } catch {
+    return null;
+  }
+}
+
+function isVisible(): boolean {
+  return typeof document === "undefined" || document.visibilityState !== "hidden";
+}
 
 /**
  * Elect a leader among all tabs/windows sharing the same name.
  * Uses localStorage + storage events for cross-tab coordination.
  *
- * The first instance that starts becomes leader. If the leader tab is closed
- * or calls `destroy()`, a remaining tab takes over within ~600 ms.
+ * The first visible tab becomes leader. When the leader tab loses focus,
+ * a visible tab will take over after a short debounce delay (_VISIBILITY_DELAY).
+ * This prevents rapid leader-hopping when quickly switching between tabs.
  *
  * Falls back to always-leader when localStorage is unavailable.
  *
@@ -122,26 +146,29 @@ export function leaderElection(name: string): LeaderElection {
 
   const myId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-  // Try to become leader
+  // Try to become leader.
+  // A visible tab can displace an invisible leader even if its heartbeat is still fresh.
   function tryBecomeLeader(): void {
     const current = localStorage.getItem(leaderKey);
-    const lastHb = Number(localStorage.getItem(heartbeatKey) ?? "0");
-    const stale = Date.now() - lastHb > _HEARTBEAT_TIMEOUT;
+    const hb = parseHeartbeat(localStorage.getItem(heartbeatKey));
+    const stale = !hb || Date.now() - hb.ts > _HEARTBEAT_TIMEOUT;
+    // Take over if: no leader, leader is stale, or leader is invisible and we are visible
+    const visibleTakeover = !stale && hb && !hb.visible && isVisible();
 
-    if (!current || stale) {
+    if (!current || stale || visibleTakeover) {
       localStorage.setItem(leaderKey, myId);
-      localStorage.setItem(heartbeatKey, String(Date.now()));
+      localStorage.setItem(heartbeatKey, JSON.stringify({ ts: Date.now(), visible: isVisible() } satisfies Heartbeat));
       setLeader(true);
     }
   }
 
-  // Send heartbeat while leader
+  // Send heartbeat while leader, including current visibility state
   let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 
   function startHeartbeat(): void {
     heartbeatTimer = setInterval(() => {
       if (localStorage.getItem(leaderKey) === myId) {
-        localStorage.setItem(heartbeatKey, String(Date.now()));
+        localStorage.setItem(heartbeatKey, JSON.stringify({ ts: Date.now(), visible: isVisible() } satisfies Heartbeat));
       } else {
         // Someone else took over
         setLeader(false);
@@ -157,10 +184,37 @@ export function leaderElection(name: string): LeaderElection {
     }
   }
 
-  // Watch for leader vacancy from other tabs
+  // Watch for leader changes from other tabs
   function handleStorage(e: StorageEvent): void {
     if (e.key !== leaderKey && e.key !== heartbeatKey) return;
-    if (!_isLeader) tryBecomeLeader();
+    if (_isLeader) {
+      // Another tab wrote a different leader ID — resign immediately
+      if (e.key === leaderKey && e.newValue !== myId) {
+        setLeader(false);
+        stopHeartbeat();
+      }
+    } else {
+      tryBecomeLeader();
+    }
+  }
+
+  // Debounced visibility-based claim:
+  // When this tab becomes visible, wait _VISIBILITY_DELAY ms before trying to claim leadership.
+  // If the tab goes back to background before the delay fires, cancel — prevents rapid switching
+  // from causing unnecessary leader churn.
+  let visibilityTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function handleVisibilityChange(): void {
+    if (visibilityTimer !== null) {
+      clearTimeout(visibilityTimer);
+      visibilityTimer = null;
+    }
+    if (isVisible() && !_isLeader) {
+      visibilityTimer = setTimeout(() => {
+        visibilityTimer = null;
+        if (!_isLeader) tryBecomeLeader();
+      }, _VISIBILITY_DELAY);
+    }
   }
 
   tryBecomeLeader();
@@ -170,6 +224,10 @@ export function leaderElection(name: string): LeaderElection {
     window.addEventListener("storage", handleStorage);
   }
 
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+  }
+
   function onLeaderChange(cb: (isLeader: boolean) => void): () => void {
     _changeListeners.add(cb);
     return () => _changeListeners.delete(cb);
@@ -177,8 +235,15 @@ export function leaderElection(name: string): LeaderElection {
 
   function destroy(): void {
     stopHeartbeat();
+    if (visibilityTimer !== null) {
+      clearTimeout(visibilityTimer);
+      visibilityTimer = null;
+    }
     if (typeof window !== "undefined") {
       window.removeEventListener("storage", handleStorage);
+    }
+    if (typeof document !== "undefined") {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     }
     if (_isLeader) {
       localStorage.removeItem(leaderKey);

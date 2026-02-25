@@ -4,7 +4,7 @@
 // ============================================================
 
 import type { Namespace } from "@lopatnov/namespace";
-import { extend, get, on, scope, set, toJSON } from "@lopatnov/namespace";
+import { extend, inject, on, provide, scope, toJSON } from "@lopatnov/namespace";
 
 // --- Types ---
 
@@ -65,7 +65,7 @@ export function persist(ns: Namespace, options: PersistOptions): () => void {
     const storageKey = `${prefix}${rootKey}`;
 
     const doSave = () => {
-      const value = get(ns, rootKey);
+      const value = inject(ns, rootKey);
       if (value === undefined) {
         storage.removeItem(storageKey);
       } else {
@@ -124,7 +124,7 @@ export async function restore(ns: Namespace, options: RestoreOptions): Promise<v
         // Namespace-style data — extend into a scoped namespace
         extend(scope(ns, key), parsed as Record<string, unknown>);
       } else {
-        set(ns, key, parsed);
+        provide(ns, key, parsed);
       }
     } catch {
       // Ignore JSON parse errors (corrupted data)

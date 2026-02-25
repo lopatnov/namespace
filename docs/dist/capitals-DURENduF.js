@@ -1,5 +1,5 @@
-import { n as navigate, r as get, t as app } from "./app.js";
-import { t as capitals } from "./capitals-DITjSB8O.js";
+import { n as navigate, r as inject, t as app } from "./app.js";
+import { t as capitals } from "./capitals-UjdBUCGU.js";
 
 //#region ../mvvm/src/index.ts
 let _activeEffect = null;
@@ -271,12 +271,12 @@ function bind(state, root) {
 
 //#endregion
 //#region src/pages/capitals.html
-var capitals_default = "<div class=\"py-4\">\r\n  <h1 class=\"mb-1\"><i class=\"bi bi-globe me-2\"></i>World Capitals</h1>\r\n  <p class=\"lead text-body-secondary\">Click a capital to see live weather and currency exchange rates.</p>\r\n  <p class=\"small text-muted\">\r\n    Demonstrates: <strong>MVVM</strong> reactive filter &middot; <strong>Storage</strong> currency cache &middot;\r\n    route params (<code>/examples/capitals/:id</code>) &middot; Open-Meteo &amp; Monobank APIs.\r\n  </p>\r\n  <hr />\r\n  <div class=\"mb-3\">\r\n    <input\r\n      type=\"search\"\r\n      class=\"form-control\"\r\n      data-bind=\"value: query, event: { input: onFilter }\"\r\n      placeholder=\"Filter by capital or country...\"\r\n    />\r\n  </div>\r\n  <div class=\"table-responsive\">\r\n    <table class=\"table table-hover\">\r\n      <thead>\r\n        <tr>\r\n          <th>Capital</th>\r\n          <th>Country</th>\r\n          <th>Currency</th>\r\n          <th></th>\r\n        </tr>\r\n      </thead>\r\n      <tbody id=\"capitals-tbody\" data-bind=\"foreach: items\">\r\n        <tr class=\"capital-row\" style=\"cursor:pointer\" data-bind=\"attr: { 'data-id': id }\">\r\n          <td><strong data-bind=\"text: name\"></strong></td>\r\n          <td data-bind=\"text: country\"></td>\r\n          <td><span class=\"badge bg-info text-dark\" data-bind=\"text: currencyName\"></span></td>\r\n          <td class=\"text-end\"><i class=\"bi bi-chevron-right text-muted\"></i></td>\r\n        </tr>\r\n      </tbody>\r\n    </table>\r\n  </div>\r\n  <p id=\"capitals-empty\" class=\"text-muted fst-italic d-none\">No capitals match your search.</p>\r\n</div>\r\n";
+var capitals_default = "<div class=\"py-4\">\r\n  <h1 class=\"mb-1\"><i class=\"bi bi-globe me-2\"></i>World Capitals</h1>\r\n  <p class=\"lead text-body-secondary\">Click a capital to see live weather and currency exchange rates.</p>\r\n  <p class=\"small text-muted\">\r\n    Demonstrates: <strong>MVVM</strong> reactive filter &middot; <strong>Storage</strong> currency cache &middot;\r\n    route params (<code>/examples/capitals/:id</code>) &middot; Open-Meteo &amp; Monobank APIs.\r\n  </p>\r\n  <div class=\"alert alert-info py-2 small\">\r\n    <i class=\"bi bi-info-circle me-1\"></i>\r\n    <strong>Exchange rates</strong> require a local proxy — run <code>npm start</code> to see live Monobank data.\r\n    On GitHub Pages the currency section shows a \"proxy required\" notice — that is expected.\r\n  </div>\r\n  <hr />\r\n  <div class=\"mb-3\">\r\n    <input\r\n      type=\"search\"\r\n      class=\"form-control\"\r\n      data-bind=\"value: query, event: { input: onFilter }\"\r\n      placeholder=\"Filter by capital or country...\"\r\n    />\r\n  </div>\r\n  <div class=\"table-responsive\">\r\n    <table class=\"table table-hover\">\r\n      <thead>\r\n        <tr>\r\n          <th>Capital</th>\r\n          <th>Country</th>\r\n          <th>Currency</th>\r\n          <th aria-label=\"Details\"></th>\r\n        </tr>\r\n      </thead>\r\n      <tbody id=\"capitals-tbody\" data-bind=\"foreach: items\">\r\n        <tr class=\"capital-row\" data-bind=\"attr: { 'data-id': id }\">\r\n          <td><strong data-bind=\"text: name\"></strong></td>\r\n          <td data-bind=\"text: country\"></td>\r\n          <td><span class=\"badge bg-info text-dark\" data-bind=\"text: currencyName\"></span></td>\r\n          <td class=\"text-end\"><i class=\"bi bi-chevron-right text-muted\"></i></td>\r\n        </tr>\r\n      </tbody>\r\n    </table>\r\n  </div>\r\n  <p id=\"capitals-empty\" class=\"text-muted fst-italic d-none\">No capitals match your search.</p>\r\n</div>\r\n";
 
 //#endregion
 //#region src/pages/capitals.ts
 function capitalsPage(container) {
-	const router = get(app, "router");
+	const router = inject(app, "router");
 	container.innerHTML = capitals_default;
 	bind(reactive({
 		query: "",

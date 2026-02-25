@@ -1,4 +1,4 @@
-import { t as guardsMethods } from "./guards-methods-DOY2EtSe.js";
+import { t as guardsMethods } from "./guards-methods-DH20DYzJ.js";
 
 //#region src/pages/guards-method.html
 var guards_method_default = "<div class=\"py-4\">\r\n  <nav aria-label=\"breadcrumb\">\r\n    <ol class=\"breadcrumb\">\r\n      <li class=\"breadcrumb-item\"><a href=\"/guards\" data-nav>Guards</a></li>\r\n      <li class=\"breadcrumb-item active\" id=\"breadcrumb-title\"></li>\r\n    </ol>\r\n  </nav>\r\n  <h1 class=\"font-monospace mb-4\" id=\"method-title\"></h1>\r\n  <div id=\"methods-list\"></div>\r\n  <a href=\"/guards\" data-nav class=\"btn btn-outline-secondary btn-sm mt-4\"><i class=\"bi bi-arrow-left me-1\"></i>Back to Overview</a>\r\n</div>\r\n";

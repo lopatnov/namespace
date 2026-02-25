@@ -1,4 +1,4 @@
-import { createNamespace, get, on } from "@lopatnov/namespace";
+import { createNamespace, inject, on } from "@lopatnov/namespace";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { RouteHandler, Router } from "../src/index";
 import {
@@ -32,7 +32,7 @@ describe("createRouter", () => {
     expect(router.mode).toBe("hash");
     expect(router.root).toBe("#app");
     expect(router.routes).toEqual([]);
-    expect(get(ns, "router")).toBe(router);
+    expect(inject(ns, "router")).toBe(router);
   });
 
   it("defaults to hash mode and #app root", () => {

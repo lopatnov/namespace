@@ -1,11 +1,11 @@
-import { get } from "../../../namespace/src/index.ts";
+import { inject } from "../../../namespace/src/index.ts";
 import { navigate } from "../../../router/src/index.ts";
 import { pluginMethods } from "../data/plugin-methods.ts";
 import { app } from "../ns.ts";
 import template from "./plugin-overview.html";
 
 export default function pluginOverview(container: Element) {
-  const router = get(app, "router") as any;
+  const router = inject(app, "router") as any;
   container.innerHTML = template;
 
   const cards = pluginMethods

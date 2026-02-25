@@ -1,4 +1,4 @@
-import { createNamespace, get, set } from "@lopatnov/namespace";
+import { createNamespace, inject, provide } from "@lopatnov/namespace";
 import type { Router } from "@lopatnov/namespace-router";
 import { createRouter, navigate, route, start, stop } from "@lopatnov/namespace-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -164,13 +164,13 @@ describe("protect / allowed", () => {
 
   it("protection checks namespace state dynamically", () => {
     const ns = createNamespace();
-    set(ns, "user", null);
+    provide(ns, "user", null);
 
-    protect(ns, "payment", () => !!get(ns, "user"));
+    protect(ns, "payment", () => !!inject(ns, "user"));
 
     expect(allowed(ns, "payment")).toBe(false);
 
-    set(ns, "user", { name: "Alice" });
+    provide(ns, "user", { name: "Alice" });
     expect(allowed(ns, "payment")).toBe(true);
   });
 });

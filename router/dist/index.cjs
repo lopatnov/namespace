@@ -14,7 +14,7 @@ function createRouter(ns, options = {}) {
 		currentPath: "",
 		unlisten: null
 	};
-	(0, _lopatnov_namespace.set)(ns, "router", router);
+	(0, _lopatnov_namespace.provide)(ns, "router", router);
 	return router;
 }
 /** Start the router — listen to URL changes and handle the current URL. */
