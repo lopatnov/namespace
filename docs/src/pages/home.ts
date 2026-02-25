@@ -65,6 +65,15 @@ const packages = [
     href: "/component",
     color: "primary",
   },
+  {
+    icon: "bi-broadcast",
+    name: "Microfrontends",
+    npm: "@lopatnov/namespace-microfrontends",
+    description:
+      "Cross-tab event bus (BroadcastChannel) and leader election via localStorage heartbeat.",
+    href: "/microfrontends",
+    color: "success",
+  },
 ];
 
 const quickExample = `import { createApp } from '@lopatnov/namespace';

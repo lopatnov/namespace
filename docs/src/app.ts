@@ -127,6 +127,11 @@ route(
   "/examples/capitals/:id",
   lazyRoute(() => import("./pages/capital-detail.ts")),
 );
+route(
+  router,
+  "/examples/microfrontends",
+  lazyRoute(() => import("./pages/mfe-demo.ts")),
+);
 
 route(
   router,

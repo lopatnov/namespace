@@ -26,6 +26,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
     "@lopatnov/namespace": "^3.0.0"
   },

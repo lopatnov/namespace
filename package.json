@@ -24,7 +24,7 @@
     "build:component": "cd component && npx tsdown",
     "build:microfrontends": "cd microfrontends && npx tsdown",
     "build:docs": "cd docs && npx tsdown",
-    "dev": "npm run build && express-reverse-proxy",
+    "start": "npm run build && express-reverse-proxy",
     "lint": "biome check .",
     "lint:fix": "biome check --write ."
   },

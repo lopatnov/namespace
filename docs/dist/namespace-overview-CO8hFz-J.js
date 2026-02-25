@@ -1,5 +1,5 @@
-import { i as get, r as navigate, t as app } from "./app.js";
-import { t as namespaceMethods } from "./namespace-methods-COBu8SvY.js";
+import { n as navigate, r as get, t as app } from "./app.js";
+import { t as namespaceMethods } from "./namespace-methods-BqitJQVW.js";
 
 //#region src/pages/namespace-overview.html
 var namespace_overview_default = "<div class=\"py-4\">\r\n  <h1 class=\"mb-1\">Namespace</h1>\r\n  <p class=\"lead text-body-secondary\">Core kernel — service registry, event bus, scoped namespaces.</p>\r\n  <hr />\r\n  <pre class=\"bg-dark text-light p-3 rounded\"><code>import { createApp, set, get, on, scope } from '@lopatnov/namespace';</code></pre>\r\n  <div class=\"row g-3 mt-3\" id=\"method-cards\"></div>\r\n</div>\r\n";

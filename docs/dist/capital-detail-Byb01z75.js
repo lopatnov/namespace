@@ -28,6 +28,30 @@ const weatherCodes = {
 	96: ["⛈️", "Thunderstorm with hail"],
 	99: ["⛈️", "Thunderstorm with heavy hail"]
 };
+const RATES_KEY = "ns:monobank-rates";
+const RATES_TTL = 600 * 1e3;
+function loadCachedRates() {
+	try {
+		const raw = localStorage.getItem(RATES_KEY);
+		if (!raw) return null;
+		const { data, timestamp } = JSON.parse(raw);
+		if (Date.now() - timestamp > RATES_TTL) return null;
+		return {
+			rates: data,
+			fromCache: true
+		};
+	} catch {
+		return null;
+	}
+}
+function saveCachedRates(data) {
+	try {
+		localStorage.setItem(RATES_KEY, JSON.stringify({
+			data,
+			timestamp: Date.now()
+		}));
+	} catch {}
+}
 async function capitalDetail(container, params) {
 	const capital = capitals.find((c) => c.id === params.id);
 	if (!capital) {
@@ -58,13 +82,24 @@ async function capitalDetail(container, params) {
 		$("#weather-section .card-body").html("<div class=\"alert alert-warning mb-0\"><i class=\"bi bi-exclamation-triangle me-2\"></i>Weather data unavailable</div>");
 	}
 	try {
-		const rate = (await $.getJSON("/api/monobank/bank/currency")).find((r) => r.currencyCodeA === capital.currencyCode && r.currencyCodeB === 980);
+		let rates;
+		let fromCache = false;
+		const cached = loadCachedRates();
+		if (cached) {
+			rates = cached.rates;
+			fromCache = true;
+		} else {
+			rates = await $.getJSON("/api/monobank/bank/currency");
+			saveCachedRates(rates);
+		}
+		const rate = rates.find((r) => r.currencyCodeA === capital.currencyCode && r.currencyCodeB === 980);
 		$("#currency-spinner").addClass("d-none");
 		$("#currency-data").removeClass("d-none");
 		if (rate) {
 			const rateValue = rate.rateSell ?? rate.rateCross ?? rate.rateBuy;
 			$("#currency-rate").text(`${rateValue?.toFixed(2)} UAH`);
-			$("#currency-label").text(`1 ${capital.currencyName} = ... UAH (Monobank)`);
+			const cacheNote = fromCache ? " <span class=\"badge bg-secondary ms-1\">cached</span>" : "";
+			$("#currency-label").html(`1 ${capital.currencyName} → UAH (Monobank)${cacheNote}`);
 		} else if (capital.currencyCode === 980) {
 			$("#currency-rate").text("UAH");
 			$("#currency-label").text("Local currency");
