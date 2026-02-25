@@ -1,5 +1,6 @@
 import { createNamespace, inject, on } from "@lopatnov/namespace";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { RouteHandler, Router } from "../src/index";
 import {
   createRouter,
   getCurrentPath,
@@ -9,7 +10,6 @@ import {
   start,
   stop,
 } from "../src/index";
-import type { RouteHandler, Router } from "../src/index";
 
 // --- DOM / browser mocks ---
 

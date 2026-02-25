@@ -1,0 +1,54 @@
+{
+  "name": "@lopatnov/namespace-storage",
+  "version": "3.0.0",
+  "license": "Apache-2.0",
+  "author": "lopatnov",
+  "description": "Persistent storage for @lopatnov/namespace. Auto-sync namespace keys to localStorage, sessionStorage, or IndexedDB.",
+  "keywords": [
+    "storage",
+    "persistence",
+    "localStorage",
+    "indexedDB",
+    "namespace",
+    "tree-shakeable",
+    "ES2024"
+  ],
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lopatnov/namespace.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lopatnov/namespace/issues"
+  },
+  "peerDependencies": {
+    "@lopatnov/namespace": "^3.0.0"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@lopatnov/namespace": "file:../namespace",
+    "tsdown": "latest",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

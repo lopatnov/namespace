@@ -7,29 +7,152 @@ on:
 jobs:
   publish-namespace:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.x
+          node-version: 24.x
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - run: cd namespace && npm ci && npx tsdown
-      - run: cd namespace && npm publish --access public
+      - run: cd namespace && npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-router:
     runs-on: ubuntu-latest
     needs: publish-namespace
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.x
+          node-version: 24.x
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - run: cd router && npm ci && npx tsdown
-      - run: cd router && npm publish --access public
+      - run: cd router && npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-plugin:
+    runs-on: ubuntu-latest
+    needs: publish-namespace
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: cd plugin && npm ci && npx tsdown
+      - run: cd plugin && npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-storage:
+    runs-on: ubuntu-latest
+    needs: publish-namespace
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: cd storage && npm ci && npx tsdown
+      - run: cd storage && npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-guards:
+    runs-on: ubuntu-latest
+    needs: publish-namespace
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: cd guards && npm ci && npx tsdown
+      - run: cd guards && npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-mvvm:
+    runs-on: ubuntu-latest
+    needs: publish-namespace
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: cd mvvm && npm ci && npx tsdown
+      - run: cd mvvm && npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-pwa:
+    runs-on: ubuntu-latest
+    needs: publish-namespace
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: cd pwa && npm ci && npx tsdown
+      - run: cd pwa && npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-microfrontends:
+    runs-on: ubuntu-latest
+    needs: publish-namespace
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: cd microfrontends && npm ci && npx tsdown
+      - run: cd microfrontends && npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-component:
+    runs-on: ubuntu-latest
+    needs: publish-mvvm
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: cd component && npm ci && npx tsdown
+      - run: cd component && npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0d6efd" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/box-seam.svg" />
   <title>@lopatnov/namespace — Documentation</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
@@ -48,7 +51,7 @@
 
     .sidebar .nav-link.active {
       font-weight: 600;
-      color: #0d6efd !important;
+      color: #0d6efd;
       background: rgba(13, 110, 253, 0.1);
     }
 
@@ -71,6 +74,10 @@
     .sidebar .badge-soon {
       font-size: 0.65rem;
       vertical-align: middle;
+    }
+
+    #offline-banner {
+      z-index: 200;
     }
 
     .main-content {
@@ -96,9 +103,18 @@
       font-size: 0.9rem;
       margin-bottom: 1rem;
     }
+
+    .capital-row {
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
+
+  <!-- Offline banner (shown/hidden by app.ts via onOffline/onOnline) -->
+  <div id="offline-banner" class="d-none alert alert-warning text-center py-2 mb-0 rounded-0 sticky-top">
+    <i class="bi bi-wifi-off me-2"></i>You are offline — some features may be unavailable.
+  </div>
 
   <!-- Mobile navbar -->
   <nav class="navbar navbar-expand-lg d-lg-none bg-body-tertiary border-bottom sticky-top">

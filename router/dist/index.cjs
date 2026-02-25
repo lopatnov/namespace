@@ -131,6 +131,25 @@ async function handleNavigation(router) {
 	const [pathOnly, queryStr] = getPathFromURL(router.mode).split("?");
 	const query = new URLSearchParams(queryStr ?? "");
 	if (pathOnly === router.currentPath) return;
+	const nav = {
+		path: pathOnly,
+		query,
+		cancelled: false,
+		redirectTo: null
+	};
+	(0, _lopatnov_namespace.emit)(router.ns, "router:beforeNavigate", nav);
+	if (nav.cancelled) {
+		if (router.mode === "history") window.history.replaceState(null, "", router.currentPath || "/");
+		else {
+			const cur = router.currentPath || "/";
+			window.location.hash = cur.startsWith("#") ? cur : `#${cur}`;
+		}
+		return;
+	}
+	if (nav.redirectTo) {
+		navigate(router, nav.redirectTo);
+		return;
+	}
 	router.currentCleanup?.();
 	router.currentCleanup = null;
 	router.currentPath = pathOnly;

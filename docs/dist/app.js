@@ -1,62 +1,69 @@
 //#region ../namespace/src/index.ts
-const STORE = Symbol("ns.store");
-const EVENTS = Symbol("ns.events");
-const PARENT = Symbol("ns.parent");
-const PATH = Symbol("ns.path");
+const _ns = /* @__PURE__ */ new WeakMap();
 /** Create a new root namespace. */
 function createNamespace() {
-	return {
-		[STORE]: /* @__PURE__ */ new Map(),
-		[EVENTS]: /* @__PURE__ */ new Map(),
-		[PARENT]: null,
-		[PATH]: ""
-	};
+	const ns = Object.create(null);
+	_ns.set(ns, {
+		store: /* @__PURE__ */ new Map(),
+		events: /* @__PURE__ */ new Map(),
+		parent: null,
+		path: ""
+	});
+	return ns;
 }
 /** Register a value under a key. Supports dot-paths: `provide(ns, 'a.b.c', value)`. */
 function provide(ns, key, value) {
 	const parts = parsePath(key);
+	const meta = getMeta(ns);
 	if (parts.length === 1) {
-		const old = ns[STORE].get(parts[0]);
-		ns[STORE].set(parts[0], value);
+		const old = meta.store.get(parts[0]);
+		meta.store.set(parts[0], value);
 		emit(ns, "change", key, value, old);
 		return;
 	}
 	let current = ns;
 	for (let i = 0; i < parts.length - 1; i++) current = ensureChild(current, parts[i]);
 	const leaf = parts[parts.length - 1];
-	const old = current[STORE].get(leaf);
-	current[STORE].set(leaf, value);
+	const currentMeta = getMeta(current);
+	const old = currentMeta.store.get(leaf);
+	currentMeta.store.set(leaf, value);
 	const fullPath = buildPath(current, leaf);
-	emitUp(ns, current, "change", fullPath, value, old);
+	emitUp(current, "change", fullPath, value, old);
 }
 /** Retrieve a value by key. Returns `undefined` if not found. */
 function inject(ns, key) {
 	const parts = parsePath(key);
 	let current = ns;
 	for (let i = 0; i < parts.length - 1; i++) {
-		const child = current[STORE].get(parts[i]);
+		const child = getMeta(current).store.get(parts[i]);
 		if (!isNamespace(child)) return void 0;
 		current = child;
 	}
-	return current[STORE].get(parts[parts.length - 1]);
+	return getMeta(current).store.get(parts[parts.length - 1]);
 }
 /** Subscribe to an event. Returns an unsubscribe function. */
 function on(ns, event, handler) {
-	let handlers = ns[EVENTS].get(event);
+	const meta = getMeta(ns);
+	let handlers = meta.events.get(event);
 	if (!handlers) {
 		handlers = /* @__PURE__ */ new Set();
-		ns[EVENTS].set(event, handlers);
+		meta.events.set(event, handlers);
 	}
 	handlers.add(handler);
 	return () => {
 		handlers.delete(handler);
-		if (handlers.size === 0) ns[EVENTS].delete(event);
+		if (handlers.size === 0) meta.events.delete(event);
 	};
 }
 /** Emit an event with arguments. */
 function emit(ns, event, ...args) {
-	const handlers = ns[EVENTS].get(event);
+	const handlers = getMeta(ns).events.get(event);
 	if (handlers) for (const handler of handlers) handler(...args);
+}
+function getMeta(ns) {
+	const meta = _ns.get(ns);
+	if (!meta) throw new Error("Invalid namespace object");
+	return meta;
 }
 function parsePath(key) {
 	const parts = key.split(".");
@@ -64,30 +71,71 @@ function parsePath(key) {
 	return parts;
 }
 function isNamespace(value) {
-	return value !== null && typeof value === "object" && STORE in value;
+	return value !== null && typeof value === "object" && _ns.has(value);
 }
 function ensureChild(ns, key) {
-	const existing = ns[STORE].get(key);
+	const meta = getMeta(ns);
+	const existing = meta.store.get(key);
 	if (isNamespace(existing)) return existing;
-	const child = {
-		[STORE]: /* @__PURE__ */ new Map(),
-		[EVENTS]: /* @__PURE__ */ new Map(),
-		[PARENT]: ns,
-		[PATH]: ns[PATH] ? `${ns[PATH]}.${key}` : key
-	};
-	ns[STORE].set(key, child);
+	const child = createNamespace();
+	const childMeta = getMeta(child);
+	childMeta.parent = ns;
+	childMeta.path = meta.path ? `${meta.path}.${key}` : key;
+	meta.store.set(key, child);
 	return child;
 }
 function buildPath(ns, leaf) {
-	return ns[PATH] ? `${ns[PATH]}.${leaf}` : leaf;
+	const p = getMeta(ns).path;
+	return p ? `${p}.${leaf}` : leaf;
 }
-function emitUp(rootNs, currentNs, event, ...args) {
+function emitUp(currentNs, event, ...args) {
 	emit(currentNs, event, ...args);
-	let cursor = currentNs[PARENT];
+	let cursor = getMeta(currentNs).parent;
 	while (cursor !== null) {
 		emit(cursor, event, ...args);
-		cursor = cursor[PARENT];
+		cursor = getMeta(cursor).parent;
 	}
+}
+
+//#endregion
+//#region ../pwa/src/index.ts
+let _deferredPrompt = null;
+let _installListeners = [];
+if (typeof window !== "undefined") window.addEventListener("beforeinstallprompt", (e) => {
+	e.preventDefault();
+	_deferredPrompt = e;
+	for (const cb of _installListeners) cb(_deferredPrompt);
+});
+/**
+* Register a Service Worker at `url`. Returns a Promise that resolves to
+* the ServiceWorkerRegistration or undefined (if SW is not supported).
+*/
+async function registerSW(url, options = {}) {
+	if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+	try {
+		const reg = await navigator.serviceWorker.register(url);
+		options.onSuccess?.(reg);
+		return reg;
+	} catch (err) {
+		options.onError?.(err);
+		return;
+	}
+}
+/**
+* Subscribe to the `offline` event. Returns a cleanup function.
+*/
+function onOffline(cb) {
+	if (typeof window === "undefined") return () => {};
+	window.addEventListener("offline", cb);
+	return () => window.removeEventListener("offline", cb);
+}
+/**
+* Subscribe to the `online` event. Returns a cleanup function.
+*/
+function onOnline(cb) {
+	if (typeof window === "undefined") return () => {};
+	window.addEventListener("online", cb);
+	return () => window.removeEventListener("online", cb);
 }
 
 //#endregion
@@ -165,10 +213,6 @@ function lazyRoute(loader) {
 		return (result instanceof Promise ? await result : result) ?? void 0;
 	};
 }
-/** Get the current route path. */
-function getCurrentPath(router) {
-	return router.currentPath;
-}
 function getPathFromURL(mode) {
 	if (mode === "history") return window.location.pathname;
 	const hash = window.location.hash;
@@ -206,6 +250,25 @@ async function handleNavigation(router) {
 	const [pathOnly, queryStr] = getPathFromURL(router.mode).split("?");
 	const query = new URLSearchParams(queryStr ?? "");
 	if (pathOnly === router.currentPath) return;
+	const nav = {
+		path: pathOnly,
+		query,
+		cancelled: false,
+		redirectTo: null
+	};
+	emit(router.ns, "router:beforeNavigate", nav);
+	if (nav.cancelled) {
+		if (router.mode === "history") window.history.replaceState(null, "", router.currentPath || "/");
+		else {
+			const cur = router.currentPath || "/";
+			window.location.hash = cur.startsWith("#") ? cur : `#${cur}`;
+		}
+		return;
+	}
+	if (nav.redirectTo) {
+		navigate(router, nav.redirectTo);
+		return;
+	}
 	router.currentCleanup?.();
 	router.currentCleanup = null;
 	router.currentPath = pathOnly;
@@ -235,59 +298,39 @@ async function handleNavigation(router) {
 const app = createNamespace();
 
 //#endregion
+//#region src/sidebar.html
+var sidebar_default = "<a class=\"logo\" href=\"#/\" data-nav>@lopatnov/namespace</a>\r\n<nav class=\"nav flex-column\">\r\n  <a class=\"nav-link\" href=\"/\" data-nav><i class=\"bi bi-house me-2\"></i>Home</a>\r\n\r\n  <div class=\"section-title\">Namespace</div>\r\n  <a class=\"nav-link\" href=\"/namespace\" data-nav>Overview</a>\r\n  <a class=\"nav-link sub\" href=\"/namespace/createNamespace\" data-nav>createNamespace</a>\r\n  <a class=\"nav-link sub\" href=\"/namespace/provide\" data-nav>provide / inject</a>\r\n  <a class=\"nav-link sub\" href=\"/namespace/has\" data-nav>has / remove / keys</a>\r\n  <a class=\"nav-link sub\" href=\"/namespace/on\" data-nav>on / off / emit</a>\r\n  <a class=\"nav-link sub\" href=\"/namespace/scope\" data-nav>scope / root / parent</a>\r\n  <a class=\"nav-link sub\" href=\"/namespace/toJSON\" data-nav>toJSON / clone / extend</a>\r\n  <a class=\"nav-link sub\" href=\"/namespace/createApp\" data-nav>createApp / App</a>\r\n\r\n  <div class=\"section-title\">Router</div>\r\n  <a class=\"nav-link\" href=\"/router\" data-nav>Overview</a>\r\n  <a class=\"nav-link sub\" href=\"/router/createRouter\" data-nav>createRouter / start</a>\r\n  <a class=\"nav-link sub\" href=\"/router/route\" data-nav>route / navigate</a>\r\n  <a class=\"nav-link sub\" href=\"/router/lazyRoute\" data-nav>lazyRoute</a>\r\n  <a class=\"nav-link sub\" href=\"/router/back\" data-nav>back / forward</a>\r\n\r\n  <div class=\"section-title\">Plugin</div>\r\n  <a class=\"nav-link\" href=\"/plugin\" data-nav>Overview</a>\r\n  <a class=\"nav-link sub\" href=\"/plugin/definePlugin\" data-nav>definePlugin / usePlugin</a>\r\n  <a class=\"nav-link sub\" href=\"/plugin/installed\" data-nav>installed / uninstallPlugin</a>\r\n\r\n  <div class=\"section-title\">Storage</div>\r\n  <a class=\"nav-link\" href=\"/storage\" data-nav>Overview</a>\r\n  <a class=\"nav-link sub\" href=\"/storage/persist\" data-nav>persist / restore</a>\r\n  <a class=\"nav-link sub\" href=\"/storage/createIndexedDB\" data-nav>createIndexedDB</a>\r\n\r\n  <div class=\"section-title\">Guards</div>\r\n  <a class=\"nav-link\" href=\"/guards\" data-nav>Overview</a>\r\n  <a class=\"nav-link sub\" href=\"/guards/guard\" data-nav>guard</a>\r\n  <a class=\"nav-link sub\" href=\"/guards/protect\" data-nav>protect / allowed</a>\r\n\r\n  <div class=\"section-title\">MVVM</div>\r\n  <a class=\"nav-link\" href=\"/mvvm\" data-nav>Overview</a>\r\n  <a class=\"nav-link sub\" href=\"/mvvm/reactive\" data-nav>reactive</a>\r\n  <a class=\"nav-link sub\" href=\"/mvvm/bind\" data-nav>bind</a>\r\n  <a class=\"nav-link sub\" href=\"/mvvm/text-html\" data-nav>text / html</a>\r\n  <a class=\"nav-link sub\" href=\"/mvvm/visible-if\" data-nav>visible / if</a>\r\n  <a class=\"nav-link sub\" href=\"/mvvm/value-checked\" data-nav>value / checked</a>\r\n  <a class=\"nav-link sub\" href=\"/mvvm/css-attr\" data-nav>css / attr</a>\r\n  <a class=\"nav-link sub\" href=\"/mvvm/event-foreach\" data-nav>event / foreach</a>\r\n\r\n  <div class=\"section-title\">PWA</div>\r\n  <a class=\"nav-link\" href=\"/pwa\" data-nav>Overview</a>\r\n  <a class=\"nav-link sub\" href=\"/pwa/registerSW\" data-nav>registerSW</a>\r\n  <a class=\"nav-link sub\" href=\"/pwa/install-prompt\" data-nav>onInstallPrompt / promptInstall</a>\r\n  <a class=\"nav-link sub\" href=\"/pwa/network-status\" data-nav>isOnline / onOffline / onOnline</a>\r\n  <a class=\"nav-link sub\" href=\"/pwa/sw-updates\" data-nav>onUpdateAvailable / activateUpdate</a>\r\n\r\n  <div class=\"section-title\">Component</div>\r\n  <a class=\"nav-link\" href=\"/component\" data-nav>Overview</a>\r\n  <a class=\"nav-link sub\" href=\"/component/defineComponent\" data-nav>defineComponent</a>\r\n  <a class=\"nav-link sub\" href=\"/component/mount\" data-nav>mount</a>\r\n\r\n  <div class=\"section-title\">Microfrontends</div>\r\n  <a class=\"nav-link\" href=\"/microfrontends\" data-nav>Overview</a>\r\n  <a class=\"nav-link sub\" href=\"/microfrontends/createBus\" data-nav>createBus</a>\r\n  <a class=\"nav-link sub\" href=\"/microfrontends/leaderElection\" data-nav>leaderElection</a>\r\n\r\n  <div class=\"section-title\">Examples</div>\r\n  <a class=\"nav-link\" href=\"/examples/capitals\" data-nav><i class=\"bi bi-globe me-1\"></i>World Capitals</a>\r\n  <a class=\"nav-link\" href=\"/examples/microfrontends\" data-nav><i class=\"bi bi-broadcast me-1\"></i>Microfrontends</a>\r\n\r\n  <hr class=\"mx-3 my-2\" />\r\n  <a class=\"nav-link\" href=\"/about\" data-nav><i class=\"bi bi-info-circle me-1\"></i>About</a>\r\n  <a class=\"nav-link\" href=\"https://github.com/lopatnov/namespace\" target=\"_blank\">\r\n    <i class=\"bi bi-github me-1\"></i>GitHub <i class=\"bi bi-box-arrow-up-right\" style=\"font-size:0.7rem\"></i>\r\n  </a>\r\n</nav>\r\n";
+
+//#endregion
 //#region src/app.ts
 const router = createRouter(app, {
 	mode: "hash",
 	root: "#app"
 });
-const sidebarHTML = `
-  <a class="logo" href="#/" data-nav>@lopatnov/namespace</a>
-  <nav class="nav flex-column">
-    <a class="nav-link" href="/" data-nav><i class="bi bi-house me-2"></i>Home</a>
-
-    <div class="section-title">Namespace</div>
-    <a class="nav-link" href="/namespace" data-nav>Overview</a>
-    <a class="nav-link sub" href="/namespace/createNamespace" data-nav>createNamespace</a>
-    <a class="nav-link sub" href="/namespace/provide" data-nav>provide / inject</a>
-    <a class="nav-link sub" href="/namespace/has" data-nav>has / remove / keys</a>
-    <a class="nav-link sub" href="/namespace/on" data-nav>on / off / emit</a>
-    <a class="nav-link sub" href="/namespace/scope" data-nav>scope / root / parent</a>
-    <a class="nav-link sub" href="/namespace/toJSON" data-nav>toJSON / clone / merge</a>
-
-    <div class="section-title">Router</div>
-    <a class="nav-link" href="/router" data-nav>Overview</a>
-    <a class="nav-link sub" href="/router/createRouter" data-nav>createRouter / start</a>
-    <a class="nav-link sub" href="/router/route" data-nav>route / navigate</a>
-    <a class="nav-link sub" href="/router/lazyRoute" data-nav>lazyRoute</a>
-    <a class="nav-link sub" href="/router/back" data-nav>back / forward</a>
-
-    <div class="section-title">Modules</div>
-    <a class="nav-link" href="/mvvm" data-nav>MVVM <span class="badge bg-secondary badge-soon">soon</span></a>
-    <a class="nav-link" href="/component" data-nav>Components <span class="badge bg-secondary badge-soon">soon</span></a>
-    <a class="nav-link" href="/plugin" data-nav>Plugins <span class="badge bg-secondary badge-soon">soon</span></a>
-
-    <div class="section-title">Examples</div>
-    <a class="nav-link" href="/examples/capitals" data-nav><i class="bi bi-globe me-1"></i>World Capitals</a>
-
-    <hr class="mx-3 my-2" />
-    <a class="nav-link" href="/about" data-nav><i class="bi bi-info-circle me-1"></i>About</a>
-    <a class="nav-link" href="https://github.com/lopatnov/namespace" target="_blank">
-      <i class="bi bi-github me-1"></i>GitHub <i class="bi bi-box-arrow-up-right" style="font-size:0.7rem"></i>
-    </a>
-  </nav>
-`;
-$("#sidebar-desktop").html(sidebarHTML);
-$("#sidebar-mobile").html(sidebarHTML);
-route(router, "/", lazyRoute(() => import("./home-WFbBsXHK.js")));
-route(router, "/namespace", lazyRoute(() => import("./namespace-overview-DhJEoxKR.js")));
-route(router, "/namespace/:method", lazyRoute(() => import("./namespace-method-DDessNRy.js")));
-route(router, "/router", lazyRoute(() => import("./router-overview-Bwnmk4va.js")));
-route(router, "/router/:method", lazyRoute(() => import("./router-method-CDpgvwyv.js")));
-route(router, "/mvvm", lazyRoute(() => import("./placeholder-s56j8nQE.js")));
-route(router, "/component", lazyRoute(() => import("./placeholder-s56j8nQE.js")));
-route(router, "/plugin", lazyRoute(() => import("./placeholder-s56j8nQE.js")));
-route(router, "/examples/capitals", lazyRoute(() => import("./capitals-BYENxhV5.js")));
-route(router, "/examples/capitals/:id", lazyRoute(() => import("./capital-detail-BlQycVrG.js")));
+$("#sidebar-desktop").html(sidebar_default);
+$("#sidebar-mobile").html(sidebar_default);
+route(router, "/", lazyRoute(() => import("./home-hlORfASe.js")));
+route(router, "/namespace", lazyRoute(() => import("./namespace-overview-CPPLVwd0.js")));
+route(router, "/namespace/:method", lazyRoute(() => import("./namespace-method-B4w0vCeZ.js")));
+route(router, "/router", lazyRoute(() => import("./router-overview-D7PuUW5T.js")));
+route(router, "/router/:method", lazyRoute(() => import("./router-method-DnCvrsse.js")));
+route(router, "/plugin", lazyRoute(() => import("./plugin-overview-CMxRFHQN.js")));
+route(router, "/plugin/:method", lazyRoute(() => import("./plugin-method-BT_6iEvg.js")));
+route(router, "/storage", lazyRoute(() => import("./storage-overview-iI9zqOah.js")));
+route(router, "/storage/:method", lazyRoute(() => import("./storage-method-GzgecuZu.js")));
+route(router, "/guards", lazyRoute(() => import("./guards-overview-C73_7D_J.js")));
+route(router, "/guards/:method", lazyRoute(() => import("./guards-method-DFffmPZT.js")));
+route(router, "/mvvm", lazyRoute(() => import("./mvvm-overview-Rx3SghSP.js")));
+route(router, "/mvvm/:method", lazyRoute(() => import("./mvvm-method-DzFXhyAf.js")));
+route(router, "/pwa", lazyRoute(() => import("./pwa-overview-DURmjimH.js")));
+route(router, "/pwa/:method", lazyRoute(() => import("./pwa-method-C7NG6k_k.js")));
+route(router, "/component", lazyRoute(() => import("./component-overview-BGBTai2t.js")));
+route(router, "/component/:method", lazyRoute(() => import("./component-method-DQbbdzq7.js")));
+route(router, "/microfrontends", lazyRoute(() => import("./microfrontends-overview-BVGmraNi.js")));
+route(router, "/microfrontends/:method", lazyRoute(() => import("./microfrontends-method-Bmn5aVNG.js")));
+route(router, "/examples/capitals", lazyRoute(() => import("./capitals-DTqj05_V.js")));
+route(router, "/examples/capitals/:id", lazyRoute(() => import("./capital-detail-DRS7fQ7E.js")));
+route(router, "/examples/microfrontends", lazyRoute(() => import("./mfe-demo-jdJR2vCW.js")));
 route(router, "/about", lazyRoute(() => import("./about-DxqSnmvA.js")));
 on(app, "router:after", (path) => {
 	$("[data-nav]").removeClass("active");
@@ -297,6 +340,13 @@ on(app, "router:after", (path) => {
 	window.scrollTo(0, 0);
 });
 start(router);
+registerSW("./sw.js");
+onOffline(() => {
+	$("#offline-banner").removeClass("d-none");
+});
+onOnline(() => {
+	$("#offline-banner").addClass("d-none");
+});
 
 //#endregion
-export { inject as i, getCurrentPath as n, navigate as r, app as t };
+export { on as i, navigate as n, inject as r, app as t };

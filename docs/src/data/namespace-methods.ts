@@ -20,7 +20,7 @@ export const namespaceMethods: MethodGroup[] = [
         name: "createNamespace",
         signature: "createNamespace(): Namespace",
         description:
-          "Creates a new root namespace. A namespace is a lightweight container for services, values, and child scopes. Internal storage uses Symbols — no key collisions with your data.",
+          "Creates a new root namespace. A namespace is a lightweight opaque token backed by a WeakMap — no key collisions, no global state. Each createApp() / createNamespace() call is fully isolated, making this architecture natural for microfrontends.",
         example: `import { createNamespace } from '@lopatnov/namespace';
 
 const app = createNamespace();`,
@@ -159,7 +159,7 @@ path(auth);  // 'auth'`,
   },
   {
     slug: "toJSON",
-    title: "toJSON / fromJSON / clone / merge",
+    title: "toJSON / fromJSON / clone / extend",
     methods: [
       {
         name: "toJSON",
@@ -183,11 +183,54 @@ inject(restored, 'config.debug');  // true`,
         example: "const copy = clone(app);",
       },
       {
-        name: "merge",
-        signature: "merge(ns: Namespace, data: Record<string, unknown>): void",
+        name: "extend",
+        signature: "extend(ns: Namespace, source: Record<string, unknown> | Namespace): void",
         description:
-          "Merge a plain object into a namespace. Nested objects become child namespaces. Existing values are overwritten.",
-        example: "merge(app, { config: { debug: false }, newKey: 42 });",
+          "Merge a plain object or another Namespace into a namespace. Unlike toJSON, this preserves functions. Nested objects become child namespaces. Existing values are overwritten.",
+        example: `extend(app, { config: { debug: false }, newKey: 42 });
+
+// Also accepts another namespace:
+const other = createNamespace();
+provide(other, 'theme', 'dark');
+extend(app, other);`,
+      },
+    ],
+  },
+  {
+    slug: "createApp",
+    title: "createApp / App",
+    methods: [
+      {
+        name: "createApp",
+        signature: "createApp(): App",
+        description:
+          "Create an isolated application instance with a fluent chainable API. Each app owns its own namespace — multiple apps never share state, making this ideal for microfrontends running on the same page.",
+        example: `import { createApp } from '@lopatnov/namespace';
+
+const app = createApp();
+
+// Fluent API — provide/inject, events, plugins, scoping
+app
+  .use('api.url', '/api/v1')
+  .use('debug', true)
+  .on('user:login', (user) => console.log('Welcome', user.name))
+  .once('app:ready', () => console.log('Ready!'));`,
+      },
+      {
+        name: "App.use",
+        signature:
+          "app.use(key): T | undefined\napp.use(key, value): this\napp.use(plugin): this\napp.use(plugin, options): this",
+        description:
+          "Unified access point. One method for getting values, setting values, and installing plugins. Overloaded by argument type — TypeScript will guide you.",
+        example: `// Get a value
+const url = app.use<string>('api.url');
+
+// Set a value (chainable)
+app.use('api.url', '/api/v2').use('debug', false);
+
+// Install a plugin
+import RouterPlugin from '@lopatnov/namespace-router/plugin';
+app.use(RouterPlugin, { mode: 'hash', root: '#app' });`,
       },
     ],
   },

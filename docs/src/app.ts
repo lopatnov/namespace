@@ -1,47 +1,12 @@
 import { on } from "../../namespace/src/index.ts";
-import { createRouter, getCurrentPath, lazyRoute, route, start } from "../../router/src/index.ts";
+import { onOffline, onOnline, registerSW } from "../../pwa/src/index.ts";
+import { createRouter, lazyRoute, route, start } from "../../router/src/index.ts";
 import { app } from "./ns.ts";
+import sidebarHTML from "./sidebar.html";
 
 const router = createRouter(app, { mode: "hash", root: "#app" });
 
 // --- Sidebar ---
-
-const sidebarHTML = `
-  <a class="logo" href="#/" data-nav>@lopatnov/namespace</a>
-  <nav class="nav flex-column">
-    <a class="nav-link" href="/" data-nav><i class="bi bi-house me-2"></i>Home</a>
-
-    <div class="section-title">Namespace</div>
-    <a class="nav-link" href="/namespace" data-nav>Overview</a>
-    <a class="nav-link sub" href="/namespace/createNamespace" data-nav>createNamespace</a>
-    <a class="nav-link sub" href="/namespace/provide" data-nav>provide / inject</a>
-    <a class="nav-link sub" href="/namespace/has" data-nav>has / remove / keys</a>
-    <a class="nav-link sub" href="/namespace/on" data-nav>on / off / emit</a>
-    <a class="nav-link sub" href="/namespace/scope" data-nav>scope / root / parent</a>
-    <a class="nav-link sub" href="/namespace/toJSON" data-nav>toJSON / clone / merge</a>
-
-    <div class="section-title">Router</div>
-    <a class="nav-link" href="/router" data-nav>Overview</a>
-    <a class="nav-link sub" href="/router/createRouter" data-nav>createRouter / start</a>
-    <a class="nav-link sub" href="/router/route" data-nav>route / navigate</a>
-    <a class="nav-link sub" href="/router/lazyRoute" data-nav>lazyRoute</a>
-    <a class="nav-link sub" href="/router/back" data-nav>back / forward</a>
-
-    <div class="section-title">Modules</div>
-    <a class="nav-link" href="/mvvm" data-nav>MVVM <span class="badge bg-secondary badge-soon">soon</span></a>
-    <a class="nav-link" href="/component" data-nav>Components <span class="badge bg-secondary badge-soon">soon</span></a>
-    <a class="nav-link" href="/plugin" data-nav>Plugins <span class="badge bg-secondary badge-soon">soon</span></a>
-
-    <div class="section-title">Examples</div>
-    <a class="nav-link" href="/examples/capitals" data-nav><i class="bi bi-globe me-1"></i>World Capitals</a>
-
-    <hr class="mx-3 my-2" />
-    <a class="nav-link" href="/about" data-nav><i class="bi bi-info-circle me-1"></i>About</a>
-    <a class="nav-link" href="https://github.com/lopatnov/namespace" target="_blank">
-      <i class="bi bi-github me-1"></i>GitHub <i class="bi bi-box-arrow-up-right" style="font-size:0.7rem"></i>
-    </a>
-  </nav>
-`;
 
 $("#sidebar-desktop").html(sidebarHTML);
 $("#sidebar-mobile").html(sidebarHTML);
@@ -53,6 +18,7 @@ route(
   "/",
   lazyRoute(() => import("./pages/home.ts")),
 );
+
 route(
   router,
   "/namespace",
@@ -63,6 +29,7 @@ route(
   "/namespace/:method",
   lazyRoute(() => import("./pages/namespace-method.ts")),
 );
+
 route(
   router,
   "/router",
@@ -73,21 +40,83 @@ route(
   "/router/:method",
   lazyRoute(() => import("./pages/router-method.ts")),
 );
-route(
-  router,
-  "/mvvm",
-  lazyRoute(() => import("./pages/placeholder.ts")),
-);
-route(
-  router,
-  "/component",
-  lazyRoute(() => import("./pages/placeholder.ts")),
-);
+
 route(
   router,
   "/plugin",
-  lazyRoute(() => import("./pages/placeholder.ts")),
+  lazyRoute(() => import("./pages/plugin-overview.ts")),
 );
+route(
+  router,
+  "/plugin/:method",
+  lazyRoute(() => import("./pages/plugin-method.ts")),
+);
+
+route(
+  router,
+  "/storage",
+  lazyRoute(() => import("./pages/storage-overview.ts")),
+);
+route(
+  router,
+  "/storage/:method",
+  lazyRoute(() => import("./pages/storage-method.ts")),
+);
+
+route(
+  router,
+  "/guards",
+  lazyRoute(() => import("./pages/guards-overview.ts")),
+);
+route(
+  router,
+  "/guards/:method",
+  lazyRoute(() => import("./pages/guards-method.ts")),
+);
+
+route(
+  router,
+  "/mvvm",
+  lazyRoute(() => import("./pages/mvvm-overview.ts")),
+);
+route(
+  router,
+  "/mvvm/:method",
+  lazyRoute(() => import("./pages/mvvm-method.ts")),
+);
+route(
+  router,
+  "/pwa",
+  lazyRoute(() => import("./pages/pwa-overview.ts")),
+);
+route(
+  router,
+  "/pwa/:method",
+  lazyRoute(() => import("./pages/pwa-method.ts")),
+);
+
+route(
+  router,
+  "/component",
+  lazyRoute(() => import("./pages/component-overview.ts")),
+);
+route(
+  router,
+  "/component/:method",
+  lazyRoute(() => import("./pages/component-method.ts")),
+);
+
+route(
+  router,
+  "/microfrontends",
+  lazyRoute(() => import("./pages/microfrontends-overview.ts")),
+);
+route(
+  router,
+  "/microfrontends/:method",
+  lazyRoute(() => import("./pages/microfrontends-method.ts")),
+);
+
 route(
   router,
   "/examples/capitals",
@@ -98,6 +127,12 @@ route(
   "/examples/capitals/:id",
   lazyRoute(() => import("./pages/capital-detail.ts")),
 );
+route(
+  router,
+  "/examples/microfrontends",
+  lazyRoute(() => import("./pages/mfe-demo.ts")),
+);
+
 route(
   router,
   "/about",
@@ -124,3 +159,15 @@ on(app, "router:after", (path: string) => {
 // --- Start ---
 
 start(router);
+
+// --- PWA ---
+
+registerSW("./sw.js");
+
+onOffline(() => {
+  $("#offline-banner").removeClass("d-none");
+});
+
+onOnline(() => {
+  $("#offline-banner").addClass("d-none");
+});

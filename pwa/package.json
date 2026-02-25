@@ -1,0 +1,51 @@
+{
+  "name": "@lopatnov/namespace-pwa",
+  "version": "3.0.0",
+  "license": "Apache-2.0",
+  "author": "lopatnov",
+  "description": "PWA utilities for @lopatnov/namespace. Service Worker registration, install prompt, network status, and update management.",
+  "keywords": [
+    "pwa",
+    "service-worker",
+    "install-prompt",
+    "offline",
+    "namespace",
+    "tree-shakeable",
+    "ES2024"
+  ],
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lopatnov/namespace.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lopatnov/namespace/issues"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "jsdom": "^28.1.0",
+    "tsdown": "latest",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

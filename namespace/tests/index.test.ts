@@ -1,18 +1,21 @@
 import { describe, expect, it, vi } from "vitest";
+import type { Namespace, NamespacePlugin } from "../src/index";
 import {
-  path,
+  App,
   clone,
+  createApp,
   createNamespace,
   emit,
   entries,
+  extend,
   fromJSON,
   has,
   inject,
   keys,
-  merge,
   off,
   on,
   parent,
+  path,
   provide,
   remove,
   root,
@@ -343,16 +346,41 @@ describe("toJSON / fromJSON / clone", () => {
   });
 });
 
-describe("merge", () => {
+describe("extend", () => {
   it("merges plain object into namespace", () => {
     const ns = createNamespace();
     provide(ns, "x", 1);
 
-    merge(ns, { y: 2, nested: { a: 3 } });
+    extend(ns, { y: 2, nested: { a: 3 } });
 
     expect(inject(ns, "x")).toBe(1);
     expect(inject(ns, "y")).toBe(2);
     expect(inject(ns, "nested.a")).toBe(3);
+  });
+
+  it("merges another namespace", () => {
+    const ns1 = createNamespace();
+    provide(ns1, "a", 1);
+    provide(ns1, "b.c", 2);
+
+    const ns2 = createNamespace();
+    provide(ns2, "d", 3);
+    extend(ns2, ns1);
+
+    expect(inject(ns2, "a")).toBe(1);
+    expect(inject(ns2, "b.c")).toBe(2);
+    expect(inject(ns2, "d")).toBe(3);
+  });
+
+  it("preserves functions (unlike toJSON)", () => {
+    const ns = createNamespace();
+    const fn = () => 42;
+    provide(ns, "fn", fn);
+
+    const ns2 = createNamespace();
+    extend(ns2, ns);
+
+    expect(inject(ns2, "fn")).toBe(fn);
   });
 });
 
@@ -376,8 +404,275 @@ describe("edge cases", () => {
   it("provide overwrites non-namespace with namespace (scope re-creation)", () => {
     const ns = createNamespace();
     provide(ns, "x", 42);
-    // Now provide a deep path through x — x becomes a namespace
+    // Now set a deep path through x — x becomes a namespace
     provide(ns, "x.y", 1);
     expect(inject(ns, "x.y")).toBe(1);
+  });
+});
+
+// ============================================================
+// createApp / App tests
+// ============================================================
+
+describe("createApp / App.use (provide/inject)", () => {
+  it("sets and gets a value via use()", () => {
+    const app = createApp();
+    app.use("name", "Alice");
+    expect(app.use("name")).toBe("Alice");
+  });
+
+  it("use(key) returns undefined for missing key", () => {
+    const app = createApp();
+    expect(app.use("missing")).toBeUndefined();
+  });
+
+  it("use(key, value) is chainable", () => {
+    const app = createApp();
+    const result = app.use("a", 1).use("b", 2).use("c", 3);
+    expect(result).toBe(app);
+    expect(app.use("a")).toBe(1);
+    expect(app.use("b")).toBe(2);
+    expect(app.use("c")).toBe(3);
+  });
+
+  it("supports typed get via generic", () => {
+    const app = createApp();
+    app.use("count", 42);
+    const n = app.use<number>("count");
+    expect(n).toBe(42);
+  });
+
+  it("has() reflects set state", () => {
+    const app = createApp();
+    expect(app.has("x")).toBe(false);
+    app.use("x", 1);
+    expect(app.has("x")).toBe(true);
+  });
+
+  it("remove() deletes a key and is chainable", () => {
+    const app = createApp();
+    app.use("x", 1);
+    const result = app.remove("x");
+    expect(result).toBe(app);
+    expect(app.has("x")).toBe(false);
+  });
+
+  it("keys() returns registered keys", () => {
+    const app = createApp();
+    app.use("a", 1).use("b", 2);
+    expect(app.keys().sort()).toEqual(["a", "b"]);
+  });
+});
+
+describe("App events", () => {
+  it("on/off/emit are chainable", () => {
+    const app = createApp();
+    const handler = vi.fn();
+    const result = app.on("evt", handler);
+    expect(result).toBe(app);
+
+    app.emit("evt", 42);
+    expect(handler).toHaveBeenCalledWith(42);
+
+    app.off("evt", handler).emit("evt", 99);
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("once() fires handler exactly once", () => {
+    const app = createApp();
+    const handler = vi.fn();
+    app.once("evt", handler);
+
+    app.emit("evt", 1);
+    app.emit("evt", 2);
+    app.emit("evt", 3);
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledWith(1);
+  });
+});
+
+describe("App scope / root / parent", () => {
+  it("scope() returns a child App", () => {
+    const app = createApp();
+    const auth = app.scope("auth");
+    expect(auth).toBeInstanceOf(App);
+    auth.use("token", "abc");
+    expect(app.use("auth.token")).toBe("abc");
+  });
+
+  it("root() returns top-level App", () => {
+    const app = createApp();
+    const child = app.scope("a.b.c");
+    expect(child.root().ns).toBe(app.ns);
+  });
+
+  it("parent() returns null for root App", () => {
+    const app = createApp();
+    expect(app.parent()).toBeNull();
+  });
+
+  it("parent() returns parent App for scoped child", () => {
+    const app = createApp();
+    const auth = app.scope("auth");
+    expect(auth.parent()!.ns).toBe(app.ns);
+  });
+});
+
+describe("App extend / toJSON / clone", () => {
+  it("extend() from plain object is chainable", () => {
+    const app = createApp();
+    const result = app.extend({ x: 1, y: 2 });
+    expect(result).toBe(app);
+    expect(app.use("x")).toBe(1);
+  });
+
+  it("extend() from another App", () => {
+    const app1 = createApp();
+    app1.use("a", 1);
+    const app2 = createApp();
+    app2.extend(app1);
+    expect(app2.use("a")).toBe(1);
+  });
+
+  it("toJSON() returns plain object", () => {
+    const app = createApp();
+    app.use("name", "Test").use("config.env", "prod");
+    expect(app.toJSON()).toEqual({ name: "Test", config: { env: "prod" } });
+  });
+
+  it("clone() creates independent copy", () => {
+    const app = createApp();
+    app.use("x", 1);
+    const copy = app.clone();
+    copy.use("x", 999);
+    expect(app.use("x")).toBe(1);
+    expect(copy.use("x")).toBe(999);
+  });
+});
+
+describe("App plugins", () => {
+  it("installs a plugin via use(plugin)", () => {
+    const plugin: NamespacePlugin<void> = {
+      id: "test-plugin",
+      install(ns: Namespace) {
+        provide(ns, "pluginValue", 42);
+      },
+    };
+
+    const app = createApp();
+    const result = app.use(plugin);
+    expect(result).toBe(app);
+    expect(app.use("pluginValue")).toBe(42);
+    expect(app.installed(plugin)).toBe(true);
+    expect(app.installed("test-plugin")).toBe(true);
+  });
+
+  it("installs a plugin with options", () => {
+    const plugin: NamespacePlugin<{ prefix: string }> = {
+      id: "prefix-plugin",
+      install(ns: Namespace, opts: { prefix: string }) {
+        provide(ns, "prefix", opts.prefix);
+      },
+    };
+
+    const app = createApp();
+    app.use(plugin, { prefix: "v3" });
+    expect(app.use("prefix")).toBe("v3");
+  });
+
+  it("install is idempotent — second use() is a no-op", () => {
+    const installFn = vi.fn();
+    const plugin: NamespacePlugin<void> = {
+      id: "once-plugin",
+      install: installFn,
+    };
+
+    const app = createApp();
+    app.use(plugin).use(plugin).use(plugin);
+    expect(installFn).toHaveBeenCalledTimes(1);
+  });
+
+  it("emits plugin:installed event on install", () => {
+    const handler = vi.fn();
+    const plugin: NamespacePlugin<void> = { id: "evt-plugin", install: vi.fn() };
+
+    const app = createApp();
+    app.on("plugin:installed", handler);
+    app.use(plugin);
+    expect(handler).toHaveBeenCalledWith("evt-plugin");
+  });
+
+  it("unuse() calls uninstall and emits plugin:uninstalled", () => {
+    const uninstallFn = vi.fn();
+    const handler = vi.fn();
+    const plugin: NamespacePlugin<void> = {
+      id: "removable",
+      install: vi.fn(),
+      uninstall: uninstallFn,
+    };
+
+    const app = createApp();
+    app.on("plugin:uninstalled", handler);
+    app.use(plugin).unuse(plugin);
+
+    expect(uninstallFn).toHaveBeenCalled();
+    expect(handler).toHaveBeenCalledWith("removable");
+    expect(app.installed("removable")).toBe(false);
+  });
+
+  it("unuse() by string id", () => {
+    const plugin: NamespacePlugin<void> = { id: "by-id", install: vi.fn() };
+    const app = createApp();
+    app.use(plugin).unuse("by-id");
+    expect(app.installed("by-id")).toBe(false);
+  });
+});
+
+describe("App.ns — namespace interop", () => {
+  it("ns is the underlying Namespace", () => {
+    const app = createApp();
+    app.use("x", 1);
+    expect(inject(app.ns, "x")).toBe(1);
+  });
+
+  it("changes via pure functions are visible through App", () => {
+    const app = createApp();
+    provide(app.ns, "y", 2);
+    expect(app.use("y")).toBe(2);
+  });
+});
+
+describe("Microfrontend isolation", () => {
+  it("two createApp() instances are completely independent", () => {
+    const shell = createApp();
+    const widget = createApp();
+
+    shell.use("config", { env: "prod" });
+    widget.use("config", { env: "test" });
+
+    expect(shell.use<{ env: string }>("config")!.env).toBe("prod");
+    expect(widget.use<{ env: string }>("config")!.env).toBe("test");
+  });
+
+  it("events do not leak between apps", () => {
+    const app1 = createApp();
+    const app2 = createApp();
+    const handler = vi.fn();
+
+    app1.on("shared:event", handler);
+    app2.emit("shared:event", "from app2");
+
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("plugin installed in one app is not visible in another", () => {
+    const plugin: NamespacePlugin<void> = { id: "shared-plugin", install: vi.fn() };
+    const app1 = createApp();
+    const app2 = createApp();
+
+    app1.use(plugin);
+    expect(app1.installed("shared-plugin")).toBe(true);
+    expect(app2.installed("shared-plugin")).toBe(false);
   });
 });

@@ -1,0 +1,8 @@
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["server-config.json"],
+      "url": "../express-reverse-proxy/server-config.schema.json"
+    }
+  ]
+}

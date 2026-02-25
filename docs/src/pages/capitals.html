@@ -2,10 +2,19 @@
   <h1 class="mb-1"><i class="bi bi-globe me-2"></i>World Capitals</h1>
   <p class="lead text-body-secondary">Click a capital to see live weather and currency exchange rates.</p>
   <p class="small text-muted">
-    This example demonstrates route params (<code>/examples/capitals/:id</code>),
-    lazy loading, and live API integration (Open-Meteo, Monobank).
+    Demonstrates: <strong>MVVM</strong> reactive filter &middot; <strong>Storage</strong> currency cache &middot;
+    route params (<code>/examples/capitals/:id</code>) &middot; Open-Meteo &amp; Monobank APIs.
   </p>
+
   <hr />
+  <div class="mb-3">
+    <input
+      type="search"
+      class="form-control"
+      data-bind="value: query, event: { input: onFilter }"
+      placeholder="Filter by capital or country..."
+    />
+  </div>
   <div class="table-responsive">
     <table class="table table-hover">
       <thead>
@@ -13,10 +22,18 @@
           <th>Capital</th>
           <th>Country</th>
           <th>Currency</th>
-          <th></th>
+          <th aria-label="Details"></th>
         </tr>
       </thead>
-      <tbody id="capitals-tbody"></tbody>
+      <tbody id="capitals-tbody" data-bind="foreach: items">
+        <tr class="capital-row" data-bind="attr: { 'data-id': id }">
+          <td><strong data-bind="text: name"></strong></td>
+          <td data-bind="text: country"></td>
+          <td><span class="badge bg-info text-dark" data-bind="text: currencyName"></span></td>
+          <td class="text-end"><i class="bi bi-chevron-right text-muted"></i></td>
+        </tr>
+      </tbody>
     </table>
   </div>
+  <p id="capitals-empty" class="text-muted fst-italic d-none">No capitals match your search.</p>
 </div>

@@ -26,6 +26,40 @@ const weatherCodes: Record<number, [string, string]> = {
   99: ["\u26C8\uFE0F", "Thunderstorm with heavy hail"],
 };
 
+// --- Currency cache (localStorage, TTL = 10 min) ---
+// Key uses the 'ns:' prefix convention from @lopatnov/namespace-storage
+
+interface MonobankRate {
+  currencyCodeA: number;
+  currencyCodeB: number;
+  rateBuy?: number;
+  rateSell?: number;
+  rateCross?: number;
+}
+
+const RATES_KEY = "ns:monobank-rates";
+const RATES_TTL = 10 * 60 * 1000; // 10 minutes
+
+function loadCachedRates(): { rates: MonobankRate[]; fromCache: boolean } | null {
+  try {
+    const raw = localStorage.getItem(RATES_KEY);
+    if (!raw) return null;
+    const { data, timestamp }: { data: MonobankRate[]; timestamp: number } = JSON.parse(raw);
+    if (Date.now() - timestamp > RATES_TTL) return null;
+    return { rates: data, fromCache: true };
+  } catch {
+    return null;
+  }
+}
+
+function saveCachedRates(data: MonobankRate[]): void {
+  try {
+    localStorage.setItem(RATES_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+  } catch {
+    // Storage quota exceeded or private browsing — ignore
+  }
+}
+
 export default async function capitalDetail(container: Element, params: Record<string, string>) {
   const capital = capitals.find((c) => c.id === params.id);
 
@@ -64,15 +98,20 @@ export default async function capitalDetail(container: Element, params: Record<s
     );
   }
 
-  // Fetch currency
+  // Fetch currency (with localStorage cache, TTL = 10 min)
   try {
-    const rates = (await $.getJSON("/api/monobank/bank/currency")) as Array<{
-      currencyCodeA: number;
-      currencyCodeB: number;
-      rateBuy?: number;
-      rateSell?: number;
-      rateCross?: number;
-    }>;
+    let rates: MonobankRate[];
+    let fromCache = false;
+
+    const cached = loadCachedRates();
+    if (cached) {
+      rates = cached.rates;
+      fromCache = true;
+    } else {
+      rates = (await $.getJSON("https://api.monobank.ua/bank/currency")) as MonobankRate[];
+      saveCachedRates(rates);
+    }
+
     const rate = rates.find(
       (r) => r.currencyCodeA === capital.currencyCode && r.currencyCodeB === 980,
     );
@@ -83,10 +122,20 @@ export default async function capitalDetail(container: Element, params: Record<s
     if (rate) {
       const rateValue = rate.rateSell ?? rate.rateCross ?? rate.rateBuy;
       $("#currency-rate").text(`${rateValue?.toFixed(2)} UAH`);
-      $("#currency-label").text(`1 ${capital.currencyName} = ... UAH (Monobank)`);
+      const cacheNote = fromCache ? ' <span class="badge bg-secondary ms-1">cached</span>' : "";
+      $("#currency-label").html(`1 ${capital.currencyName} → UAH (Monobank)${cacheNote}`);
     } else if (capital.currencyCode === 980) {
-      $("#currency-rate").text("UAH");
-      $("#currency-label").text("Local currency");
+      // UAH is the base currency — show USD/UAH reference rate instead
+      const usdRate = rates.find((r) => r.currencyCodeA === 840 && r.currencyCodeB === 980);
+      const usdValue = usdRate ? (usdRate.rateSell ?? usdRate.rateCross ?? usdRate.rateBuy) : null;
+      const cacheNote = fromCache ? ' <span class="badge bg-secondary ms-1">cached</span>' : "";
+      if (usdValue) {
+        $("#currency-rate").text(`${usdValue.toFixed(2)} UAH`);
+        $("#currency-label").html(`1 USD → UAH (Monobank)${cacheNote}`);
+      } else {
+        $("#currency-rate").text("UAH");
+        $("#currency-label").text("Local currency");
+      }
     } else {
       $("#currency-rate").text("N/A");
       $("#currency-label").text("Rate not available for this currency");
