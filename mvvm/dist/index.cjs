@@ -200,8 +200,9 @@ function applyBinding(type, expr, el, state, cleanups) {
 			const handlers = evalExpr(expr, state);
 			if (handlers && typeof handlers === "object") {
 				for (const [eventName, fn] of Object.entries(handlers)) if (typeof fn === "function") {
-					el.addEventListener(eventName, fn);
-					cleanups.push(() => el.removeEventListener(eventName, fn));
+					const boundFn = fn.bind(state);
+					el.addEventListener(eventName, boundFn);
+					cleanups.push(() => el.removeEventListener(eventName, boundFn));
 				}
 			}
 			break;
@@ -218,9 +219,9 @@ function applyBinding(type, expr, el, state, cleanups) {
 				if (!Array.isArray(items)) return;
 				for (const item of items) {
 					const itemState = typeof item === "object" && item !== null ? item : { $data: item };
-					const wrapper = document.createElement("div");
+					const wrapper = document.createElement("template");
 					wrapper.innerHTML = templateHTML;
-					for (const child of Array.from(wrapper.children)) {
+					for (const child of Array.from(wrapper.content.children)) {
 						const cleanup = bindElement(child, itemState);
 						itemCleanups.push(cleanup);
 						el.appendChild(child);
