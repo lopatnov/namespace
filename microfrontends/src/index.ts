@@ -157,7 +157,10 @@ export function leaderElection(name: string): LeaderElection {
 
     if (!current || stale || visibleTakeover) {
       localStorage.setItem(leaderKey, myId);
-      localStorage.setItem(heartbeatKey, JSON.stringify({ ts: Date.now(), visible: isVisible() } satisfies Heartbeat));
+      localStorage.setItem(
+        heartbeatKey,
+        JSON.stringify({ ts: Date.now(), visible: isVisible() } satisfies Heartbeat),
+      );
       setLeader(true);
     }
   }
@@ -168,7 +171,10 @@ export function leaderElection(name: string): LeaderElection {
   function startHeartbeat(): void {
     heartbeatTimer = setInterval(() => {
       if (localStorage.getItem(leaderKey) === myId) {
-        localStorage.setItem(heartbeatKey, JSON.stringify({ ts: Date.now(), visible: isVisible() } satisfies Heartbeat));
+        localStorage.setItem(
+          heartbeatKey,
+          JSON.stringify({ ts: Date.now(), visible: isVisible() } satisfies Heartbeat),
+        );
       } else {
         // Someone else took over
         setLeader(false);
