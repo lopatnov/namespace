@@ -1,6 +1,6 @@
 {
   "name": "@lopatnov/namespace-mvvm",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "license": "Apache-2.0",
   "author": "lopatnov",
   "description": "Reactive DOM bindings for @lopatnov/namespace. Knockout.js-style data-bind with ES2024 Proxy — no virtual DOM, no JSX, works with jQuery.",
