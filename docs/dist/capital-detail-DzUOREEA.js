@@ -101,8 +101,16 @@ async function capitalDetail(container, params) {
 			const cacheNote = fromCache ? " <span class=\"badge bg-secondary ms-1\">cached</span>" : "";
 			$("#currency-label").html(`1 ${capital.currencyName} → UAH (Monobank)${cacheNote}`);
 		} else if (capital.currencyCode === 980) {
-			$("#currency-rate").text("UAH");
-			$("#currency-label").text("Local currency");
+			const usdRate = rates.find((r) => r.currencyCodeA === 840 && r.currencyCodeB === 980);
+			const usdValue = usdRate ? usdRate.rateSell ?? usdRate.rateCross ?? usdRate.rateBuy : null;
+			const cacheNote = fromCache ? " <span class=\"badge bg-secondary ms-1\">cached</span>" : "";
+			if (usdValue) {
+				$("#currency-rate").text(`${usdValue.toFixed(2)} UAH`);
+				$("#currency-label").html(`1 USD → UAH (Monobank)${cacheNote}`);
+			} else {
+				$("#currency-rate").text("UAH");
+				$("#currency-label").text("Local currency");
+			}
 		} else {
 			$("#currency-rate").text("N/A");
 			$("#currency-label").text("Rate not available for this currency");
