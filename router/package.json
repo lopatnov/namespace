@@ -29,6 +29,13 @@
   "publishConfig": {
     "access": "public"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lopatnov/namespace.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lopatnov/namespace/issues"
+  },
   "peerDependencies": {
     "@lopatnov/namespace": "^3.0.0"
   },
