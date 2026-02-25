@@ -1,6 +1,6 @@
 {
   "name": "@lopatnov/namespace-storage",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "license": "Apache-2.0",
   "author": "lopatnov",
   "description": "Persistent storage for @lopatnov/namespace. Auto-sync namespace keys to localStorage, sessionStorage, or IndexedDB.",

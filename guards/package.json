@@ -1,6 +1,6 @@
 {
   "name": "@lopatnov/namespace-guards",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "license": "Apache-2.0",
   "author": "lopatnov",
   "description": "Route and service guards for @lopatnov/namespace. Intercept navigation and protect namespace keys with access checks.",

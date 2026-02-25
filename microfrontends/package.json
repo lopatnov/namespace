@@ -1,6 +1,6 @@
 {
   "name": "@lopatnov/namespace-microfrontends",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "license": "Apache-2.0",
   "author": "lopatnov",
   "description": "Cross-app/cross-tab communication bus and leader election for @lopatnov/namespace. BroadcastChannel event bus and localStorage-based leader election.",

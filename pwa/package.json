@@ -1,6 +1,6 @@
 {
   "name": "@lopatnov/namespace-pwa",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "license": "Apache-2.0",
   "author": "lopatnov",
   "description": "PWA utilities for @lopatnov/namespace. Service Worker registration, install prompt, network status, and update management.",
