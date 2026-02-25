@@ -1,8 +1,8 @@
 // @lopatnov/namespace docs — Service Worker
 // Caches the app shell for offline access.
 
-const CACHE = "ns-docs-v1";
-const PRECACHE = ["./", "./index.html", "./dist/app.js"];
+const CACHE = "ns-docs-v2";
+const PRECACHE = ["./", "./index.html"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)));
