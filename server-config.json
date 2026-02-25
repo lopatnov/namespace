@@ -14,9 +14,6 @@
     "/component": "./component",
     "/microfrontends": "./microfrontends"
   },
-  "proxy": {
-    "/api/monobank": "https://api.monobank.ua"
-  },
   "unhandled": {
     "html": { "status": 200, "file": "./docs/index.html" },
     "*": { "status": 404, "send": "Not Found" }

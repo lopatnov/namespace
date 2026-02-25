@@ -89,7 +89,7 @@ async function capitalDetail(container, params) {
 			rates = cached.rates;
 			fromCache = true;
 		} else {
-			rates = await $.getJSON("/api/monobank/bank/currency");
+			rates = await $.getJSON("https://api.monobank.ua/bank/currency");
 			saveCachedRates(rates);
 		}
 		const rate = rates.find((r) => r.currencyCodeA === capital.currencyCode && r.currencyCodeB === 980);

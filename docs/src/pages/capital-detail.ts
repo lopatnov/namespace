@@ -108,7 +108,7 @@ export default async function capitalDetail(container: Element, params: Record<s
       rates = cached.rates;
       fromCache = true;
     } else {
-      rates = (await $.getJSON("/api/monobank/bank/currency")) as MonobankRate[];
+      rates = (await $.getJSON("https://api.monobank.ua/bank/currency")) as MonobankRate[];
       saveCachedRates(rates);
     }
 
